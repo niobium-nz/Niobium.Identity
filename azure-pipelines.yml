@@ -13,7 +13,6 @@ pool:
 resources: 
   repositories:
   - repository: devops
-    endpoint: CodRepo
     type: git
     name: cod/Cod.Infrastructures
     ref: main
