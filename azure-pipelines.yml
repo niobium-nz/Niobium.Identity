@@ -1,0 +1,97 @@
+name: '1.0$(Rev:.r)'
+trigger:
+- master
+
+variables:
+  buildAgentVmImage: 'windows-latest'
+  serviceConnection: 'codidentity'
+  resourceGroupName: 'codidentity'
+
+pool:
+  vmImage: $(buildAgentVmImage)
+
+resources: 
+  repositories:
+  - repository: devops
+    endpoint: CodRepo
+    type: git
+    name: cod/Cod.Infrastructures
+    ref: main
+
+stages:
+- stage: Production
+  jobs:
+  - template: pipelines/jobs/GenericDotnetBuild.yml@devops
+    parameters:
+      projectToPublish: '**/Cod.Platform.Identity.API.Functions.csproj'
+
+  - template: pipelines/jobs/FunctionAppInfrastructure.yml@devops
+    parameters:
+      azureServiceConnection: $(serviceConnection)
+      resourceGroupName: $(resourceGroupName)
+      appNamePrefix: 'codidentity'
+      enableKeyVault: true
+      enableStagingSlot: true
+      checkoutDevopsStep:
+        checkout: devops
+
+  - job: Table
+    dependsOn: 
+      - Infrastructure
+    condition: succeeded()
+    pool:
+      vmImage: $(buildAgentVmImage)
+    variables:
+      functionAppPrincipalId: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppPrincipalId']]
+    steps:
+    - checkout: devops
+    - template: pipelines/steps/newStorageAccount.yml@devops
+      parameters:
+        azureServiceConnection: $(serviceConnection)
+        resourceGroupName: $(resourceGroupName)
+        storageAccountName: 'codidentitydb'
+        contributorPrincipalId: $(functionAppPrincipalId)
+
+  - job: Configuration
+    dependsOn:
+      - Infrastructure
+      - Table
+    condition: succeeded()
+    pool:
+      vmImage: $(buildAgentVmImage)
+    variables:
+      functionAppName: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppName']]
+      functionAppHostname: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppHostname']]
+      tableEndpoint: $[dependencies.Table.outputs['newStorageAccountProperties.tableEndpoint']]
+      keyVaultUrl: $[dependencies.Infrastructure.outputs['infrastructureOutputs.keyVaultUrl']]
+    steps:
+    - checkout: none
+    - task: AzureAppServiceSettings@1
+      displayName: 'Update AppSettings'
+      inputs:
+        azureSubscription: $(serviceConnection)
+        appName: $(functionAppName)
+        resourceGroupName: $(resourceGroupName)
+        appSettings: |
+          [
+            {
+              "name": "StorageTable:ServiceUri",
+              "value": "$(tableEndpoint)",
+              "slotSetting": false
+            },
+            {
+              "name": "ID_TOKEN_PRIVATE_KEY",
+              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/ID-TOKEN-PRIVATE-KEY/)",
+              "slotSetting": false
+            },
+            {
+              "name": "AzureDefaults:Retry:maxRetries",
+              "value": "3",
+              "slotSetting": false
+            }
+          ]
+      
+  - template: pipelines/jobs/FunctionAppDeploy.yml@devops
+    parameters:
+      serviceConnection: $(serviceConnection)
+      resourceGroupName: $(resourceGroupName)
