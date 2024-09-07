@@ -84,6 +84,11 @@ stages:
               "slotSetting": false
             },
             {
+              "name": "ID_TOKEN_PRIVATE_KEY_PASSCODE",
+              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/ID-TOKEN-PRIVATE-KEY-PASSCODE/)",
+              "slotSetting": false
+            },
+            {
               "name": "AzureDefaults:Retry:maxRetries",
               "value": "3",
               "slotSetting": false
