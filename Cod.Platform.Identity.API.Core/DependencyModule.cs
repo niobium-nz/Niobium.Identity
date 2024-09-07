@@ -12,6 +12,8 @@ namespace Cod.Platform.Identity.API
             services.AddTransient<IAuthenticator, Authenticator>();
             services.AddTransient<ILoginRequestHandler, EmailLoginRequestHandler>();
             services.AddTransient<ILoginRequestHandler, PasswordLoginRequestHandler>();
+
+            services.AddTransient<IRepository<User>, CloudTableRepository<User>>();
             services.AddTransient<IRepository<Login>, CloudTableRepository<Login>>();
 
             services.AddTransient<AuthenticationDomain>();
