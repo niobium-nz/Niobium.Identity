@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Cod.Abstractions" Version="2.0.2-prerelease" />
-    <PackageReference Include="Cod.Platform.Identity.Abstractions" Version="2.0.3-prerelease" />
+    <PackageReference Include="Cod.Abstractions" Version="2.0.4-prerelease" />
+    <PackageReference Include="Cod.Platform.Identity.Abstractions" Version="2.0.4-prerelease" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.2.0" />
   </ItemGroup>
 
