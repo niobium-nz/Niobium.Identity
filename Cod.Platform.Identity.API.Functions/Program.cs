@@ -5,7 +5,10 @@ using Cod.Platform.Identity.API;
 using Functions.Worker.ContextAccessor;
 
 IHost host = Host.CreateDefaultBuilder(args)
-    .ConfigureFunctionsWebApplication()
+    .ConfigureFunctionsWebApplication(builder =>
+    {
+        builder.UseFunctionContextAccessor();
+    })
     .ConfigureServices((hostContext, services) =>
     {
         services.AddApplicationInsightsTelemetryWorkerService();
@@ -19,6 +22,11 @@ IHost host = Host.CreateDefaultBuilder(args)
         });
 
         services.AddCodIdentityAPI(hostContext.Configuration);
+    })
+    .UseDefaultServiceProvider((_, options) =>
+    {
+        options.ValidateScopes = true;
+        options.ValidateOnBuild = true;
     })
     .Build();
 
