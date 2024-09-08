@@ -11,7 +11,7 @@ namespace Cod.Platform.Identity.API
         public bool CanHandle(string scheme, string identity, string? credential)
             => string.Equals(scheme, AuthenticationScheme.BasicLoginScheme, StringComparison.InvariantCultureIgnoreCase)
                 && TryParseCredential(credential, out _)
-                && IdentityHelper.TryParseTenantAndUserName(identity, out _, out _);
+                && IdentityHelper.TryParseAppAndUserName(identity, out _, out _);
 
         public async Task<LoginResult> HandleAsync(string scheme, string identity, string? credential, string clientIP)
         {
@@ -20,7 +20,7 @@ namespace Cod.Platform.Identity.API
                 throw new ApplicationException(InternalError.BadRequest);
             }
 
-            if (!IdentityHelper.TryParseTenantAndUserName(identity, out var tenantID, out var username)
+            if (!IdentityHelper.TryParseAppAndUserName(identity, out var app, out var username)
                 || !TryParseCredential(credential, out var password))
             {
                 throw new ApplicationException(InternalError.BadRequest);
@@ -28,7 +28,7 @@ namespace Cod.Platform.Identity.API
 
             var key = await configuration.GetSettingAsStringAsync(SETTING_PASSWORD_HASH_KEY);
             var hash = HMACSHA256.HashData(Encoding.UTF8.GetBytes(key), Encoding.UTF8.GetBytes(password)).ToHex();
-            Login login = await repository.Value.RetrieveAsync(Login.BuildPartitionKey(AuthenticationKind.Username, tenantID.ToKey()), Login.BuildRowKey(username));
+            Login login = await repository.Value.RetrieveAsync(Login.BuildPartitionKey(AuthenticationKind.Username, app.ToKey()), Login.BuildRowKey(username));
             if (login == null || login.Credentials != hash)
             {
                 throw new ApplicationException(InternalError.AuthenticationRequired);
@@ -37,7 +37,7 @@ namespace Cod.Platform.Identity.API
             return new()
             {
                 User = login.User,
-                Tenant = tenantID
+                App = app
             };
         }
 

@@ -10,7 +10,7 @@
 
         public abstract Task<LoginResult> HandleAsync(string scheme, string identity, string? credential, string clientIP);
 
-        protected async Task<Guid> SetupNewLoginAsync(AuthenticationKind channel, Guid tenantID, string openID, string? credential, string clientIP)
+        protected async Task<Guid> SetupNewLoginAsync(AuthenticationKind channel, Guid app, string openID, string? credential, string clientIP)
         {
             var userID = Guid.NewGuid();
 
@@ -24,7 +24,7 @@
 
             await LoginRepository.CreateAsync(new Login
             {
-                PartitionKey = Login.BuildPartitionKey(channel, tenantID.ToKey()),
+                PartitionKey = Login.BuildPartitionKey(channel, app.ToKey()),
                 RowKey = Login.BuildRowKey(openID),
                 User = userID,
                 Credentials = credential,

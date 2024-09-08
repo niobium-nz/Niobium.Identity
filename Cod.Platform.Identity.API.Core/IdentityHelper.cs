@@ -2,9 +2,9 @@
 {
     internal class IdentityHelper
     {
-        public static bool TryParseTenantAndUserName(string identity, out Guid tenantID, out string username)
+        public static bool TryParseAppAndUserName(string identity, out Guid app, out string username)
         {
-            tenantID = Guid.Empty;
+            app = Guid.Empty;
             username = string.Empty;
 
             if (string.IsNullOrWhiteSpace(identity))
@@ -23,7 +23,7 @@
                 return false;
             }
 
-            if (!Guid.TryParse(parts[0], out tenantID))
+            if (!Guid.TryParse(parts[0], out app))
             {
                 return false;
             }

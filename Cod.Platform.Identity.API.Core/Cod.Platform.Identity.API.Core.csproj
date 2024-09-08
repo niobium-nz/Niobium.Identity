@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Cod.Platform.Identity.API.Abstractions\Cod.Platform.Identity.API.Abstractions.csproj" />
+    <PackageReference Include="Cod.Platform.Identity" Version="2.0.8-prerelease" />
   </ItemGroup>
   
   <ItemGroup>
@@ -18,9 +19,5 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
     </AssemblyAttribute>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="Cod.Platform.Identity" Version="2.0.7-prerelease" />
   </ItemGroup>
 </Project>

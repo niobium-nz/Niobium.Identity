@@ -46,7 +46,7 @@ namespace Cod.Platform.Identity.API.Core.Tests
         {
             // Arrange
             var basicAuthScheme = AuthenticationScheme.BasicLoginScheme;
-            var validTenantID = Guid.NewGuid();
+            var validAppID = Guid.NewGuid();
             var validEmailAsUsername = "validUserName";
             var validCredential = "123456";
 
@@ -54,7 +54,7 @@ namespace Cod.Platform.Identity.API.Core.Tests
                 .Returns(Task.FromResult<Login>(null!));
 
             // Act
-            var act = async () => await subject.HandleAsync(basicAuthScheme, $"{validTenantID}|{validEmailAsUsername}", $"{PasswordLoginRequestHandler.PASSWORD_LOGIN_CREDENTIAL_PREFIX}{validCredential}", "192.168.123.123");
+            var act = async () => await subject.HandleAsync(basicAuthScheme, $"{validAppID}|{validEmailAsUsername}", $"{PasswordLoginRequestHandler.PASSWORD_LOGIN_CREDENTIAL_PREFIX}{validCredential}", "192.168.123.123");
 
             // Assert
             await act.Should().ThrowAsync<ApplicationException>().Where(e => e.ErrorCode == InternalError.AuthenticationRequired);
@@ -67,11 +67,11 @@ namespace Cod.Platform.Identity.API.Core.Tests
             var cred = "123456";
             var randomHash = "xxxxxxxxxxxxxxxx0000000";
             var basicAuthScheme = AuthenticationScheme.BasicLoginScheme;
-            var validTenantID = Guid.NewGuid();
+            var validAppID = Guid.NewGuid();
             var validEmailAsUsername = "validUserName";
             Login existingLogin = new()
             {
-                PartitionKey = Login.BuildPartitionKey(AuthenticationKind.Email, validTenantID.ToKey()),
+                PartitionKey = Login.BuildPartitionKey(AuthenticationKind.Email, validAppID.ToKey()),
                 RowKey = Login.BuildRowKey(validEmailAsUsername),
                 Credentials = randomHash,
                 User = Guid.NewGuid(),
@@ -81,7 +81,7 @@ namespace Cod.Platform.Identity.API.Core.Tests
                 .ReturnsAsync(existingLogin);
 
             // Act
-            var act = async () => await subject.HandleAsync(basicAuthScheme, $"{validTenantID}|{validEmailAsUsername}", $"{PasswordLoginRequestHandler.PASSWORD_LOGIN_CREDENTIAL_PREFIX}{cred}", "192.168.123.123");
+            var act = async () => await subject.HandleAsync(basicAuthScheme, $"{validAppID}|{validEmailAsUsername}", $"{PasswordLoginRequestHandler.PASSWORD_LOGIN_CREDENTIAL_PREFIX}{cred}", "192.168.123.123");
 
             // Assert
             await act.Should().ThrowAsync<ApplicationException>().Where(e => e.ErrorCode == InternalError.AuthenticationRequired);
@@ -94,11 +94,11 @@ namespace Cod.Platform.Identity.API.Core.Tests
             var cred = "123456";
             var expectedCredHash = "681915bd964f6d6431c007d818c070419f420695fa254b1cb7d4b9b8747bdca7";
             var basicAuthScheme = AuthenticationScheme.BasicLoginScheme;
-            var validTenantID = Guid.NewGuid();
+            var validAppID = Guid.NewGuid();
             var validEmailAsUsername = "validUserName";
             Login existingLogin = new()
             {
-                PartitionKey = Login.BuildPartitionKey(AuthenticationKind.Email, validTenantID.ToKey()),
+                PartitionKey = Login.BuildPartitionKey(AuthenticationKind.Email, validAppID.ToKey()),
                 RowKey = Login.BuildRowKey(validEmailAsUsername),
                 Credentials = expectedCredHash,
                 User = Guid.NewGuid(),
@@ -107,7 +107,7 @@ namespace Cod.Platform.Identity.API.Core.Tests
                 .ReturnsAsync(existingLogin);
 
             // Act
-            var actual = await subject.HandleAsync(basicAuthScheme, $"{validTenantID}|{validEmailAsUsername}", $"{PasswordLoginRequestHandler.PASSWORD_LOGIN_CREDENTIAL_PREFIX}{cred}", "192.168.123.123");
+            var actual = await subject.HandleAsync(basicAuthScheme, $"{validAppID}|{validEmailAsUsername}", $"{PasswordLoginRequestHandler.PASSWORD_LOGIN_CREDENTIAL_PREFIX}{cred}", "192.168.123.123");
 
             // Assert
             actual.User.Should().Be(existingLogin.User);

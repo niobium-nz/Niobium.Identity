@@ -17,7 +17,7 @@
                 throw new ApplicationException(InternalError.BadRequest);
             }
 
-            if (!TryParseOAuthParameters(identity, credential, out var channel, out var tenantID, out var authCode))
+            if (!TryParseOAuthParameters(identity, credential, out var channel, out var app, out var authCode))
             {
                 throw new ApplicationException(InternalError.BadRequest);
             }
@@ -27,28 +27,28 @@
                 throw new ApplicationException(InternalError.BadRequest);
             }
 
-            var openID = await GetOpenIDAsync(tenantID, authCode);
+            var openID = await GetOpenIDAsync(app, authCode);
             if (string.IsNullOrWhiteSpace(openID))
             {
                 throw new ApplicationException(InternalError.InternalServerError);
             }
 
-            Login login = await LoginRepository.RetrieveAsync(Login.BuildPartitionKey(channel, tenantID.ToKey()), Login.BuildRowKey(openID));
-            Guid userID = login?.User ?? await SetupNewLoginAsync(channel, tenantID, openID, null, clientIP);
+            Login login = await LoginRepository.RetrieveAsync(Login.BuildPartitionKey(channel, app.ToKey()), Login.BuildRowKey(openID));
+            Guid userID = login?.User ?? await SetupNewLoginAsync(channel, app, openID, null, clientIP);
 
             return new()
             {
                 User = userID,
-                Tenant = tenantID,
+                App = app,
             };
         }
 
         protected virtual bool TryParseOAuthParameters(string identity, string? credential,
-            out AuthenticationKind kind, out Guid tenantID, out string authCode)
+            out AuthenticationKind kind, out Guid app, out string authCode)
         {
             kind = AuthenticationKind.Unknown;
             authCode = string.Empty;
-            if (!Guid.TryParse(identity, out tenantID) || credential == null)
+            if (!Guid.TryParse(identity, out app) || credential == null)
             {
                 return false;
             }
@@ -65,6 +65,6 @@
             return false;
         }
 
-        protected abstract Task<string?> GetOpenIDAsync(Guid tenantID, string authCode);
+        protected abstract Task<string?> GetOpenIDAsync(Guid app, string authCode);
     }
 }

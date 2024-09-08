@@ -8,7 +8,8 @@ namespace Cod.Platform.Identity.API
         public const string TOTPCredentialSplit = "|";
         public const string TOTPCredentialPrefix = "TOTP";
         public const int TOTPLength = 6;
-        public static readonly TimeSpan TOTPValidity = TimeSpan.FromMinutes(10);
+        public const int TOTPValidityMinutes = 10;
+        public static readonly TimeSpan TOTPValidity = TimeSpan.FromMinutes(TOTPValidityMinutes);
 
         public override bool CanHandle(string scheme, string identity, string? credential)
         {
@@ -22,7 +23,7 @@ namespace Cod.Platform.Identity.API
                 return false;
             }
 
-            if (!IdentityHelper.TryParseTenantAndUserName(identity, out _, out _))
+            if (!IdentityHelper.TryParseAppAndUserName(identity, out _, out _))
             {
                 return false;
             }
@@ -45,30 +46,32 @@ namespace Cod.Platform.Identity.API
                 throw new ApplicationException(InternalError.BadRequest);
             }
 
-            if (!IdentityHelper.TryParseTenantAndUserName(identity, out var tenantID, out var username))
+            if (!IdentityHelper.TryParseAppAndUserName(identity, out var app, out var username))
             {
                 throw new ApplicationException(InternalError.BadRequest);
             }
 
-            var kind = DetermineAuthenticationKind(scheme, tenantID, username);
+            var kind = DetermineAuthenticationKind(scheme, app, username);
             if (kind == AuthenticationKind.Unknown)
             {
                 throw new ApplicationException(InternalError.BadRequest);
             }
 
             LoginResult result = new();
-            Login? login = await LoginRepository.RetrieveAsync(Login.BuildPartitionKey(kind, tenantID.ToKey()), Login.BuildRowKey(username));
+            Login? login = await LoginRepository.RetrieveAsync(Login.BuildPartitionKey(kind, app.ToKey()), Login.BuildRowKey(username));
             if (string.IsNullOrEmpty(credential))
             {
-                var successSetup = await SetupTOTPAsync(kind, tenantID, username, login, clientIP);
+                var successSetup = await SetupTOTPAsync(kind, app, username, login, clientIP);
                 if (successSetup)
                 {
                     result.Challenge = kind;
+                    result.ChallengeSubject = username;
                 }
                 else
                 {
                     result.Challenge = AuthenticationKind.Authenticator;
                 }
+
                 return result;
             }
 
@@ -80,31 +83,37 @@ namespace Cod.Platform.Identity.API
             if (!TryParseTOTP(login, out var totp1, out var createdAt)
                 || !TryParseTOTP(credential, out var totp2)
                 || totp1 != totp2
-                || DateTimeOffset.UtcNow - createdAt > TOTPValidity)
+                || !CheckTOTPValidity(createdAt))
             {
                 throw new ApplicationException(InternalError.AuthenticationRequired);
             }
 
             result.User = login.User;
-            result.Tenant = tenantID;
+            result.App = app;
             return result;
         }
 
-        protected virtual async Task<bool> SetupTOTPAsync(AuthenticationKind kind, Guid tenantID, string username, Login? login, string clientIP)
+        protected virtual async Task<bool> SetupTOTPAsync(AuthenticationKind kind, Guid app, string username, Login? login, string clientIP)
         {
             var totp = NewTOTP();
             var credential = $"{TOTPCredentialPrefix}{TOTPCredentialSplit}{totp}";
             var result = false;
             if (login == null)
             {
-                await SetupNewLoginAsync(kind, tenantID, username, credential, clientIP);
-                await ChallengeAsync(kind, tenantID, username, CredentialKind.TOTP, totp, clientIP);
+                await SetupNewLoginAsync(kind, app, username, credential, clientIP);
+                await ChallengeAsync(kind, app, username, CredentialKind.TOTP, totp, clientIP);
                 result = true;
             }
             else
             {
                 if (login.Credentials == null || login.Credentials.StartsWith(TOTPCredentialPrefix))
                 {
+                    if (TryParseTOTP(login, out var existingTOTP, out var existingTOTPCreatedAt) && CheckTOTPValidity(existingTOTPCreatedAt))
+                    {
+                        totp = NewTOTP(existingTOTP);
+                        credential = $"{TOTPCredentialPrefix}{TOTPCredentialSplit}{totp}";
+                    }
+
                     login.Credentials = credential;
                     await LoginRepository.UpdateAsync(login);
                     result = true;
@@ -113,14 +122,14 @@ namespace Cod.Platform.Identity.API
 
             if (result)
             {
-                await ChallengeAsync(kind, tenantID, username, CredentialKind.TOTP, totp, clientIP);
+                await ChallengeAsync(kind, app, username, CredentialKind.TOTP, totp, clientIP);
             }
             return result;
         }
 
-        protected abstract AuthenticationKind DetermineAuthenticationKind(string scheme, Guid tenantID, string username);
+        protected abstract AuthenticationKind DetermineAuthenticationKind(string scheme, Guid app, string username);
 
-        protected abstract Task ChallengeAsync(AuthenticationKind kind, Guid tenantID, string username, CredentialKind credentialKind, string credential, string clientIP);
+        protected abstract Task ChallengeAsync(AuthenticationKind kind, Guid app, string username, CredentialKind credentialKind, string credential, string clientIP);
 
         protected static bool TryParseTOTP(Login login, out string totp, out DateTimeOffset createdAt)
         {
@@ -160,9 +169,15 @@ namespace Cod.Platform.Identity.API
             return true;
         }
 
-        protected static string NewTOTP()
+        protected static string NewTOTP(string? totp = null)
         {
             var now = DateTimeOffset.UtcNow;
+
+            if (!string.IsNullOrWhiteSpace(totp) && totp.Length == TOTPLength && totp.All(char.IsDigit))
+            {
+                return $"{totp}@{now:o}";
+            }
+
             var random = new Random(now.Microsecond);
             var digits = new StringBuilder(TOTPLength);
             for (int i = 0; i < TOTPLength; i++)
@@ -186,5 +201,7 @@ namespace Cod.Platform.Identity.API
             totp = parts[0];
             return totp.Length == TOTPLength && totp.All(char.IsDigit);
         }
+
+        private static bool CheckTOTPValidity(DateTimeOffset createdAt) => DateTimeOffset.UtcNow - createdAt <= TOTPValidity;
     }
 }

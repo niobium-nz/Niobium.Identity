@@ -8,7 +8,7 @@ namespace Cod.Platform.Identity.API
         Lazy<ITokenBuilder> tokenBuilder)
         : GenericDomain<User>(repository, eventHandlers)
     {
-        public async Task<string> IssueTokenAsync(Guid tenantID)
+        public async Task<string> IssueTokenAsync(Guid appID)
         {
             User entity = await GetEntityAsync() ?? throw new ApplicationException(InternalError.NotFound);
             if (entity.Disabled)
@@ -17,7 +17,7 @@ namespace Cod.Platform.Identity.API
             }
 
             Guid userID = entity.GetID();
-            return await tokenBuilder.Value.BuildAsync(userID.ToKey(), audience: tenantID.ToString());
+            return await tokenBuilder.Value.BuildAsync(userID.ToKey(), audience: appID.ToString());
         }
 
         public async Task AuditAsync(string clientIP)

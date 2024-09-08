@@ -56,7 +56,7 @@ namespace Cod.Platform.Identity.API.Core.Tests
         {
             // Arrange
             var basicAuthScheme = AuthenticationScheme.BasicLoginScheme;
-            var validTenantID = Guid.NewGuid();
+            var validAppID = Guid.NewGuid();
             var validEmailAsUsername = "validUserName@gmail.com";
             var emptyCredential = string.Empty;
             IEnumerable<Login> actualLoginsCreated = [];
@@ -74,12 +74,13 @@ namespace Cod.Platform.Identity.API.Core.Tests
                 .Verifiable();
 
             // Act
-            var actual = await subject.HandleAsync(basicAuthScheme, $"{validTenantID}|{validEmailAsUsername}", emptyCredential, "192.168.123.123");
+            var actual = await subject.HandleAsync(basicAuthScheme, $"{validAppID}|{validEmailAsUsername}", emptyCredential, "192.168.123.123");
 
             // Assert
             actual.User.Should().BeNull();
             actual.Challenge!.Value.Should().Be(AuthenticationKind.Email);
-            actualLoginsCreated.Single().PartitionKey.Should().Be($"{(int)AuthenticationKind.Email}|{validTenantID}");
+            actual.ChallengeSubject.Should().Be(validEmailAsUsername);
+            actualLoginsCreated.Single().PartitionKey.Should().Be($"{(int)AuthenticationKind.Email}|{validAppID}");
             actualLoginsCreated.Single().RowKey.Should().StartWith(validEmailAsUsername);
             actualLoginsCreated.Single().Credentials.Should().StartWith($"{EmailLoginRequestHandler.TOTPCredentialPrefix}{EmailLoginRequestHandler.TOTPCredentialSplit}");
             loginRepositoryMock.Verify();
@@ -88,20 +89,25 @@ namespace Cod.Platform.Identity.API.Core.Tests
             mock.Verify();
         }
 
-        [TestMethod]
-        public async Task HandleAsync_NonFirstTimeLogin_OverrideExistingLogin()
+        [DataRow(TOTPLoginRequestHandler.TOTPValidityMinutes - 1, false)]
+        [DataRow(TOTPLoginRequestHandler.TOTPValidityMinutes, true)]
+        [DataRow(TOTPLoginRequestHandler.TOTPValidityMinutes + 1, true)]
+        [DataTestMethod]
+        public async Task HandleAsync_NonFirstTimeLogin_OverrideExistingLogin(int loginTimeDifferenceInMinutes, bool shouldRenewTOTP)
         {
             // Arrange
             var basicAuthScheme = AuthenticationScheme.BasicLoginScheme;
-            var validTenantID = Guid.NewGuid();
+            var validAppID = Guid.NewGuid();
             var validEmailAsUsername = "validUserName@gmail.com";
             var emptyCredential = string.Empty;
             IEnumerable<Login> actualLoginsUpdated = [];
+            var now = DateTimeOffset.Now;
+            var lastLoginTime = now.AddMinutes(-loginTimeDifferenceInMinutes);
             Login existingLogin = new()
             {
-                PartitionKey = Login.BuildPartitionKey(AuthenticationKind.Email, validTenantID.ToKey()),
+                PartitionKey = Login.BuildPartitionKey(AuthenticationKind.Email, validAppID.ToKey()),
                 RowKey = Login.BuildRowKey(validEmailAsUsername),
-                Credentials = $"{EmailLoginRequestHandler.TOTPCredentialPrefix}{EmailLoginRequestHandler.TOTPCredentialSplit}123456@{DateTimeOffset.Now:o}",
+                Credentials = $"{EmailLoginRequestHandler.TOTPCredentialPrefix}{EmailLoginRequestHandler.TOTPCredentialSplit}123456@{lastLoginTime:o}",
                 User = Guid.NewGuid(),
             };
             loginRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<IEnumerable<Login>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
@@ -114,12 +120,25 @@ namespace Cod.Platform.Identity.API.Core.Tests
                 .Verifiable();
 
             // Act
-            var actual = await subject.HandleAsync(basicAuthScheme, $"{validTenantID}|{validEmailAsUsername}", emptyCredential, "192.168.123.123");
+            var actual = await subject.HandleAsync(basicAuthScheme, $"{validAppID}|{validEmailAsUsername}", emptyCredential, "192.168.123.123");
 
             // Assert
             actual.User.Should().BeNull();
             actual.Challenge!.Value.Should().Be(AuthenticationKind.Email);
-            actualLoginsUpdated.Single().Should().BeEquivalentTo(existingLogin);
+            actual.ChallengeSubject.Should().Be(validEmailAsUsername);
+            actualLoginsUpdated.Single().PartitionKey.Should().Be(existingLogin.PartitionKey);
+            actualLoginsUpdated.Single().RowKey.Should().Be(existingLogin.RowKey);
+            actualLoginsUpdated.Single().User.Should().Be(existingLogin.User);
+
+            if (shouldRenewTOTP)
+            {
+                actualLoginsUpdated.Single().Credentials.Should().NotStartWith($"{EmailLoginRequestHandler.TOTPCredentialPrefix}{EmailLoginRequestHandler.TOTPCredentialSplit}123456@");
+            }
+            else
+            {
+                actualLoginsUpdated.Single().Credentials.Should().StartWith($"{EmailLoginRequestHandler.TOTPCredentialPrefix}{EmailLoginRequestHandler.TOTPCredentialSplit}123456@");
+            }
+
             loginRepositoryMock.Verify();
             mock.Verify();
         }
@@ -129,7 +148,7 @@ namespace Cod.Platform.Identity.API.Core.Tests
         {
             // Arrange
             var basicAuthScheme = AuthenticationScheme.BasicLoginScheme;
-            var validTenantID = Guid.NewGuid();
+            var validAppID = Guid.NewGuid();
             var validEmailAsUsername = "validUserName@gmail.com";
             var validCredential = $"{EmailLoginRequestHandler.TOTPCredentialPrefix}{EmailLoginRequestHandler.TOTPCredentialSplit}123456";
 
@@ -137,7 +156,7 @@ namespace Cod.Platform.Identity.API.Core.Tests
                 .Returns(Task.FromResult<Login>(null!));
 
             // Act
-            var act = async () => await subject.HandleAsync(basicAuthScheme, $"{validTenantID}|{validEmailAsUsername}", validCredential, "192.168.123.123");
+            var act = async () => await subject.HandleAsync(basicAuthScheme, $"{validAppID}|{validEmailAsUsername}", validCredential, "192.168.123.123");
 
             // Assert
             await act.Should().ThrowAsync<ApplicationException>().Where(e => e.ErrorCode == InternalError.AuthenticationRequired);
@@ -150,12 +169,12 @@ namespace Cod.Platform.Identity.API.Core.Tests
             var totp1 = "123456";
             var totp2 = "654321";
             var basicAuthScheme = AuthenticationScheme.BasicLoginScheme;
-            var validTenantID = Guid.NewGuid();
+            var validAppID = Guid.NewGuid();
             var validEmailAsUsername = "validUserName@gmail.com";
             var validCredential = $"{EmailLoginRequestHandler.TOTPCredentialPrefix}{EmailLoginRequestHandler.TOTPCredentialSplit}{totp1}";
             Login existingLogin = new()
             {
-                PartitionKey = Login.BuildPartitionKey(AuthenticationKind.Email, validTenantID.ToKey()),
+                PartitionKey = Login.BuildPartitionKey(AuthenticationKind.Email, validAppID.ToKey()),
                 RowKey = Login.BuildRowKey(validEmailAsUsername),
                 Credentials = $"{EmailLoginRequestHandler.TOTPCredentialPrefix}{EmailLoginRequestHandler.TOTPCredentialSplit}{totp2}@{DateTimeOffset.Now:o}",
                 User = Guid.NewGuid(),
@@ -165,7 +184,7 @@ namespace Cod.Platform.Identity.API.Core.Tests
                 .ReturnsAsync(existingLogin);
 
             // Act
-            var act = async () => await subject.HandleAsync(basicAuthScheme, $"{validTenantID}|{validEmailAsUsername}", validCredential, "192.168.123.123");
+            var act = async () => await subject.HandleAsync(basicAuthScheme, $"{validAppID}|{validEmailAsUsername}", validCredential, "192.168.123.123");
 
             // Assert
             await act.Should().ThrowAsync<ApplicationException>().Where(e => e.ErrorCode == InternalError.AuthenticationRequired);
@@ -177,13 +196,13 @@ namespace Cod.Platform.Identity.API.Core.Tests
             // Arrange
             var totp = "123456";
             var basicAuthScheme = AuthenticationScheme.BasicLoginScheme;
-            var validTenantID = Guid.NewGuid();
+            var validAppID = Guid.NewGuid();
             var validEmailAsUsername = "validUserName@gmail.com";
             var credentialSubmitting = $"{EmailLoginRequestHandler.TOTPCredentialPrefix}{EmailLoginRequestHandler.TOTPCredentialSplit}{totp}";
             var expiredGeneratedCredential = $"{EmailLoginRequestHandler.TOTPCredentialPrefix}{EmailLoginRequestHandler.TOTPCredentialSplit}{totp}@{DateTimeOffset.UtcNow.Add(-TOTPLoginRequestHandler.TOTPValidity).AddSeconds(-1):o}";
             Login existingLogin = new()
             {
-                PartitionKey = Login.BuildPartitionKey(AuthenticationKind.Email, validTenantID.ToKey()),
+                PartitionKey = Login.BuildPartitionKey(AuthenticationKind.Email, validAppID.ToKey()),
                 RowKey = Login.BuildRowKey(validEmailAsUsername),
                 Credentials = expiredGeneratedCredential,
                 User = Guid.NewGuid(),
@@ -193,7 +212,7 @@ namespace Cod.Platform.Identity.API.Core.Tests
                 .ReturnsAsync(existingLogin);
 
             // Act
-            var act = async () => await subject.HandleAsync(basicAuthScheme, $"{validTenantID}|{validEmailAsUsername}", credentialSubmitting, "192.168.123.123");
+            var act = async () => await subject.HandleAsync(basicAuthScheme, $"{validAppID}|{validEmailAsUsername}", credentialSubmitting, "192.168.123.123");
 
             // Assert
             await act.Should().ThrowAsync<ApplicationException>().Where(e => e.ErrorCode == InternalError.AuthenticationRequired);
@@ -205,12 +224,12 @@ namespace Cod.Platform.Identity.API.Core.Tests
             // Arrange
             var totp = "123456";
             var basicAuthScheme = AuthenticationScheme.BasicLoginScheme;
-            var validTenantID = Guid.NewGuid();
+            var validAppID = Guid.NewGuid();
             var validEmailAsUsername = "validUserName@gmail.com";
             var correctCredential = $"{EmailLoginRequestHandler.TOTPCredentialPrefix}{EmailLoginRequestHandler.TOTPCredentialSplit}{totp}";
             Login existingLogin = new()
             {
-                PartitionKey = Login.BuildPartitionKey(AuthenticationKind.Email, validTenantID.ToKey()),
+                PartitionKey = Login.BuildPartitionKey(AuthenticationKind.Email, validAppID.ToKey()),
                 RowKey = Login.BuildRowKey(validEmailAsUsername),
                 Credentials = $"{EmailLoginRequestHandler.TOTPCredentialPrefix}{EmailLoginRequestHandler.TOTPCredentialSplit}{totp}@{DateTimeOffset.Now:o}",
                 User = Guid.NewGuid(),
@@ -219,7 +238,7 @@ namespace Cod.Platform.Identity.API.Core.Tests
                 .ReturnsAsync(existingLogin);
 
             // Act
-            var actual = await subject.HandleAsync(basicAuthScheme, $"{validTenantID}|{validEmailAsUsername}", correctCredential, "192.168.123.123");
+            var actual = await subject.HandleAsync(basicAuthScheme, $"{validAppID}|{validEmailAsUsername}", correctCredential, "192.168.123.123");
 
             // Assert
             actual.User.Should().Be(existingLogin.User);

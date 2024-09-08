@@ -53,7 +53,7 @@ namespace Cod.Platform.Identity.API.Core.Tests
         public async Task HandleAsync_FirstTimeLogin_CreateNewLogin(AuthenticationKind channel)
         {
             // Arrange
-            var validTenantID = Guid.NewGuid();
+            var validAppID = Guid.NewGuid();
             var validCredential = $"{channel}@123456";
             var openID = "abcdefg";
             IEnumerable<Login> actualLoginsCreated = [];
@@ -71,12 +71,12 @@ namespace Cod.Platform.Identity.API.Core.Tests
                 .Verifiable();
 
             // Act
-            var actual = await subject.HandleAsync(AuthenticationScheme.OAuthLoginScheme, validTenantID.ToString(), validCredential, "192.168.123.123");
+            var actual = await subject.HandleAsync(AuthenticationScheme.OAuthLoginScheme, validAppID.ToString(), validCredential, "192.168.123.123");
 
             // Assert
             actual.User.Should().NotBeNull();
             actual.Challenge.HasValue.Should().BeFalse();
-            actualLoginsCreated.Single().PartitionKey.Should().Be($"{(int)channel}|{validTenantID.ToKey()}");
+            actualLoginsCreated.Single().PartitionKey.Should().Be($"{(int)channel}|{validAppID.ToKey()}");
             actualLoginsCreated.Single().RowKey.Should().StartWith(openID);
             loginRepositoryMock.Verify();
             userRepositoryMock.Verify();
@@ -94,14 +94,14 @@ namespace Cod.Platform.Identity.API.Core.Tests
         public async Task HandleAsync_LoginNotFound_ThrowsAuthenticationRequiredException(AuthenticationKind channel)
         {
             // Arrange
-            var validTenantID = Guid.NewGuid();
+            var validAppID = Guid.NewGuid();
             var validCredential = $"{channel}@123456";
             mock.Protected().Setup<Task<string?>>("GetOpenIDAsync", ItExpr.IsAny<Guid>(), ItExpr.IsAny<string>())
                 .Returns(Task.FromResult<string?>(null))
                 .Verifiable();
 
             // Act
-            var act = async () => await subject.HandleAsync(AuthenticationScheme.OAuthLoginScheme, validTenantID.ToString(), validCredential, "192.168.123.123");
+            var act = async () => await subject.HandleAsync(AuthenticationScheme.OAuthLoginScheme, validAppID.ToString(), validCredential, "192.168.123.123");
 
             // Assert
             await act.Should().ThrowAsync<ApplicationException>().Where(e => e.ErrorCode == InternalError.InternalServerError);
