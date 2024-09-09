@@ -1,6 +1,4 @@
-﻿using Cod.Platform.Identity.Authentication;
-
-namespace Cod.Platform.Identity.API
+﻿namespace Cod.Platform.Identity.API
 {
     internal class AuthenticationDomain(
         Lazy<IRepository<User>> repository,
