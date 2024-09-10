@@ -1,12 +1,17 @@
-﻿namespace Cod.Platform.Identity.API
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Cod.Platform.Identity.API
 {
-    internal class User : ITrackable
+    [method: SetsRequiredMembers]
+#pragma warning disable CS8618
+    internal class User() : ITrackable
+#pragma warning restore CS8618
     {
         [EntityKey(EntityKeyKind.PartitionKey)]
-        public string PartitionKey { get; set; }
+        public required string Prefix { get; set; }
 
         [EntityKey(EntityKeyKind.RowKey)]
-        public string RowKey { get; set; }
+        public required Guid ID { get; set; }
 
         [EntityKey(EntityKeyKind.Timestamp)]
         public DateTimeOffset? Timestamp { get; set; }
@@ -22,24 +27,14 @@
 
         public string? LastIP { get; set; }
 
-        public static string BuildPartitionKey(Guid value)
+        public static string BuildPartitionKey(Guid userID)
         {
-            return value.ToString()[..8];
+            return userID.ToString()[..8];
         }
 
-        public static string BuildRowKey(Guid value)
+        public static string BuildRowKey(Guid userID)
         {
-            return value.ToString();
-        }
-
-        public Guid GetID()
-        {
-            return Guid.Parse(RowKey);
-        }
-
-        public void SetID(Guid value)
-        {
-            RowKey = BuildRowKey(value);
+            return userID.ToString();
         }
     }
 }

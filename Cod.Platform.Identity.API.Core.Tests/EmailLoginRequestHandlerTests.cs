@@ -85,7 +85,7 @@ namespace Cod.Platform.Identity.API.Core.Tests
             actualLoginsCreated.Single().Credentials.Should().StartWith($"{EmailLoginRequestHandler.TOTPCredentialPrefix}{EmailLoginRequestHandler.TOTPCredentialSplit}");
             loginRepositoryMock.Verify();
             userRepositoryMock.Verify();
-            actualLoginsCreated.Single().User.Should().Be(Guid.Parse(actualUsersCreated.Single().RowKey));
+            actualLoginsCreated.Single().User.Should().Be(actualUsersCreated.Single().ID);
             mock.Verify();
         }
 

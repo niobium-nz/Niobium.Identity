@@ -2,25 +2,17 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Cod.Platform.Identity.API;
-using Functions.Worker.ContextAccessor;
+using Cod.Platform.Identity;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureFunctionsWebApplication(builder =>
     {
-        builder.UseFunctionContextAccessor();
+        builder.UsePlatformIdentity();
     })
     .ConfigureServices((hostContext, services) =>
     {
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
-
-        services.AddFunctionContextAccessor();
-        services.AddTransient(sp =>
-        {
-            var functionContext = sp.GetRequiredService<IFunctionContextAccessor>().FunctionContext;
-            return functionContext.GetLogger(functionContext.FunctionDefinition.Name);
-        });
-
         services.AddCodIdentityAPI(hostContext.Configuration);
     })
     .UseDefaultServiceProvider((_, options) =>

@@ -14,8 +14,7 @@
                 throw new ApplicationException(InternalError.Locked);
             }
 
-            Guid userID = entity.GetID();
-            return await tokenBuilder.Value.BuildAsync(userID.ToKey(), audience: appID.ToString());
+            return await tokenBuilder.Value.BuildAsync(entity.ID.ToKey(), audience: appID.ToString());
         }
 
         public async Task AuditAsync(string clientIP)

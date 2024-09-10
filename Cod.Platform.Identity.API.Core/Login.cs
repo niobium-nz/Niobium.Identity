@@ -1,12 +1,17 @@
-﻿namespace Cod.Platform.Identity.API
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Cod.Platform.Identity.API
 {
-    internal class Login : ITrackable
+    [method: SetsRequiredMembers]
+#pragma warning disable CS8618
+    internal class Login() : ITrackable
+#pragma warning restore CS8618
     {
         [EntityKey(EntityKeyKind.PartitionKey)]
-        public string PartitionKey { get; set; }
+        public required string PartitionKey { get; set; }
 
         [EntityKey(EntityKeyKind.RowKey)]
-        public string RowKey { get; set; }
+        public required string RowKey { get; set; }
 
         [EntityKey(EntityKeyKind.Timestamp)]
         public DateTimeOffset? Timestamp { get; set; }

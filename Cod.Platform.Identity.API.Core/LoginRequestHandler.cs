@@ -16,8 +16,8 @@
 
             await UserRepository.CreateAsync(new User
             {
-                PartitionKey = User.BuildPartitionKey(userID),
-                RowKey = User.BuildRowKey(userID),
+                Prefix = User.BuildPartitionKey(userID),
+                ID = userID,
                 FirstIP = clientIP,
                 LastIP = clientIP,
             });

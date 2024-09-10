@@ -80,7 +80,7 @@ namespace Cod.Platform.Identity.API.Core.Tests
             actualLoginsCreated.Single().RowKey.Should().StartWith(openID);
             loginRepositoryMock.Verify();
             userRepositoryMock.Verify();
-            actualLoginsCreated.Single().User.Should().Be(Guid.Parse(actualUsersCreated.Single().RowKey));
+            actualLoginsCreated.Single().User.Should().Be(actualUsersCreated.Single().ID);
             mock.Verify();
         }
 
