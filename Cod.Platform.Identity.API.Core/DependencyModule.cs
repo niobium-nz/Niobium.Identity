@@ -1,14 +1,12 @@
 ﻿using Cod.Storage.Table;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Cod.Platform.Identity.API
 {
     public static class DependencyModule
     {
-        public static IServiceCollection AddCodIdentityAPI(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddCodIdentityAPI(this IServiceCollection services)
         {
-            services.AddPlatformIdentity(configuration);
             services.AddTransient<IAuthenticator, Authenticator>();
             services.AddTransient<ILoginRequestHandler, EmailLoginRequestHandler>();
             services.AddTransient<ILoginRequestHandler, PasswordLoginRequestHandler>();

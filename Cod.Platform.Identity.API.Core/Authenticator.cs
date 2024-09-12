@@ -21,10 +21,10 @@ namespace Cod.Platform.Identity.API
             }
 
             var clientIP = req.GetRemoteIP();
-            var loginResult = await loginRequestHandler.HandleAsync(scheme, identity, credential, clientIP);
-            if (loginResult.Challenge != null)
+            LoginResult loginResult = await loginRequestHandler.HandleAsync(scheme, identity, credential, clientIP);
+            if (loginResult.Challenge.HasValue)
             {
-                req.DeliverAuthenticationToken(loginResult.ChallengeSubject, loginResult.Challenge.ToString());
+                req.DeliverAuthenticationToken(loginResult.ChallengeSubject, loginResult.Challenge.Value.ToString());
                 return new UnauthorizedResult();
             }
 

@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Cod.Platform.Identity.API.Abstractions\Cod.Platform.Identity.API.Abstractions.csproj" />
-    <PackageReference Include="Cod.Platform.Identity" Version="2.0.12-prerelease" />
+    <PackageReference Include="Cod.Platform.Identity" Version="2.0.14-prerelease" />
   </ItemGroup>
   
   <ItemGroup>

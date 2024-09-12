@@ -89,6 +89,11 @@ stages:
               "slotSetting": false
             },
             {
+              "name": "TOKEN_VALIDITY_HOURS",
+              "value": "720",
+              "slotSetting": false
+            },
+            {
               "name": "AzureDefaults:Retry:maxRetries",
               "value": "3",
               "slotSetting": false
