@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using Cod.Identity;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Cod.Platform.Identity.API

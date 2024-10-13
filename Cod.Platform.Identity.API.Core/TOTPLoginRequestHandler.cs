@@ -1,13 +1,11 @@
-﻿using System.Text;
+﻿using Cod.Identity;
+using System.Text;
 
 namespace Cod.Platform.Identity.API
 {
     internal abstract class TOTPLoginRequestHandler(Lazy<IRepository<Login>> loginRepository, Lazy<IRepository<User>> userRepository)
         : LoginRequestHandler(loginRepository, userRepository), ILoginRequestHandler
     {
-        public const string TOTPCredentialSplit = "|";
-        public const string TOTPCredentialPrefix = "TOTP";
-        public const int TOTPLength = 6;
         public const int TOTPValidityMinutes = 10;
         public static readonly TimeSpan TOTPValidity = TimeSpan.FromMinutes(TOTPValidityMinutes);
 
@@ -30,7 +28,7 @@ namespace Cod.Platform.Identity.API
 
             if (!string.IsNullOrEmpty(credential))
             {
-                if (!TryParseTOTP(credential, out _))
+                if (!IdentityHelper.TryParseTOTP(credential, out _))
                 {
                     return false;
                 }
@@ -65,7 +63,7 @@ namespace Cod.Platform.Identity.API
                 if (successSetup)
                 {
                     result.Challenge = kind;
-                    result.ChallengeSubject = username;
+                    result.ChallengeSubject = $"{app}|{username}";
                 }
                 else
                 {
@@ -80,8 +78,8 @@ namespace Cod.Platform.Identity.API
                 throw new ApplicationException(InternalError.AuthenticationRequired);
             }
 
-            if (!TryParseTOTP(login, out var totp1, out var createdAt)
-                || !TryParseTOTP(credential, out var totp2)
+            if (!TryParseTOTPFromRecord(login, out var totp1, out var createdAt)
+                || !IdentityHelper.TryParseTOTP(credential, out var totp2)
                 || totp1 != totp2
                 || !CheckTOTPValidity(createdAt))
             {
@@ -95,8 +93,8 @@ namespace Cod.Platform.Identity.API
 
         protected virtual async Task<bool> SetupTOTPAsync(AuthenticationKind kind, Guid app, string username, Login? login, string clientIP)
         {
-            var totp = NewTOTP();
-            var credential = $"{TOTPCredentialPrefix}{TOTPCredentialSplit}{totp}";
+            var totp = NewTOTPRecord();
+            var credential = IdentityHelper.BuildTOTPCredential(totp);
             var result = false;
             if (login == null)
             {
@@ -106,12 +104,12 @@ namespace Cod.Platform.Identity.API
             }
             else
             {
-                if (login.Credentials == null || login.Credentials.StartsWith(TOTPCredentialPrefix))
+                if (login.Credentials == null || login.Credentials.StartsWith(IdentityHelper.TOTPCredentialPrefix))
                 {
-                    if (TryParseTOTP(login, out var existingTOTP, out var existingTOTPCreatedAt) && CheckTOTPValidity(existingTOTPCreatedAt))
+                    if (TryParseTOTPFromRecord(login, out var existingTOTP, out var existingTOTPCreatedAt) && CheckTOTPValidity(existingTOTPCreatedAt))
                     {
-                        totp = NewTOTP(existingTOTP);
-                        credential = $"{TOTPCredentialPrefix}{TOTPCredentialSplit}{totp}";
+                        totp = NewTOTPRecord(existingTOTP);
+                        credential = IdentityHelper.BuildTOTPCredential(totp);
                     }
 
                     login.Credentials = credential;
@@ -131,7 +129,7 @@ namespace Cod.Platform.Identity.API
 
         protected abstract Task ChallengeAsync(AuthenticationKind kind, Guid app, string username, CredentialKind credentialKind, string credential, string clientIP);
 
-        protected static bool TryParseTOTP(Login login, out string totp, out DateTimeOffset createdAt)
+        protected static bool TryParseTOTPFromRecord(Login login, out string totp, out DateTimeOffset createdAt)
         {
             totp = string.Empty;
             createdAt = default;
@@ -141,9 +139,9 @@ namespace Cod.Platform.Identity.API
                 return false;
             }
 
-            var parts = login.Credentials.Split(TOTPCredentialSplit);
+            var parts = login.Credentials.Split(IdentityHelper.TOTPCredentialSplit);
             if (parts.Length != 2
-                || parts[0] != TOTPCredentialPrefix
+                || parts[0] != IdentityHelper.TOTPCredentialPrefix
                 || !TryParseTOTPFromTOTPCredential(parts[1], out totp, out createdAt)
                 || !totp.All(char.IsDigit))
             {
@@ -153,34 +151,18 @@ namespace Cod.Platform.Identity.API
             return true;
         }
 
-        protected static bool TryParseTOTP(string credential, out string totp)
-        {
-            totp = string.Empty;
-            var parts = credential.Split(TOTPCredentialSplit);
-            if (parts.Length != 2
-                || parts[0] != TOTPCredentialPrefix
-                || parts[1].Length != TOTPLength
-                || !parts[1].All(char.IsDigit))
-            {
-                return false;
-            }
-
-            totp = parts[1];
-            return true;
-        }
-
-        protected static string NewTOTP(string? totp = null)
+        protected static string NewTOTPRecord(string? totp = null)
         {
             var now = DateTimeOffset.UtcNow;
 
-            if (!string.IsNullOrWhiteSpace(totp) && totp.Length == TOTPLength && totp.All(char.IsDigit))
+            if (!string.IsNullOrWhiteSpace(totp) && totp.Length == IdentityHelper.TOTPLength && totp.All(char.IsDigit))
             {
                 return $"{totp}@{now:o}";
             }
 
             var random = new Random(now.Microsecond);
-            var digits = new StringBuilder(TOTPLength);
-            for (int i = 0; i < TOTPLength; i++)
+            var digits = new StringBuilder(IdentityHelper.TOTPLength);
+            for (int i = 0; i < IdentityHelper.TOTPLength; i++)
             {
                 digits.Append(random.Next(9));
             }
@@ -199,7 +181,7 @@ namespace Cod.Platform.Identity.API
             }
 
             totp = parts[0];
-            return totp.Length == TOTPLength && totp.All(char.IsDigit);
+            return totp.Length == IdentityHelper.TOTPLength && totp.All(char.IsDigit);
         }
 
         private static bool CheckTOTPValidity(DateTimeOffset createdAt) => DateTimeOffset.UtcNow - createdAt <= TOTPValidity;

@@ -1,4 +1,6 @@
-﻿namespace Cod.Platform.Identity.API
+﻿using Cod.Identity;
+
+namespace Cod.Platform.Identity.API
 {
     public class LoginResult
     {

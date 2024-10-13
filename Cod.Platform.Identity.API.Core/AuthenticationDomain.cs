@@ -2,7 +2,7 @@
 {
     internal class AuthenticationDomain(
         Lazy<IRepository<User>> repository,
-        IEnumerable<IEventHandler<IDomain<User>>> eventHandlers,
+        IEnumerable<IDomainEventHandler<IDomain<User>>> eventHandlers,
         Lazy<ITokenBuilder> tokenBuilder)
         : GenericDomain<User>(repository, eventHandlers)
     {

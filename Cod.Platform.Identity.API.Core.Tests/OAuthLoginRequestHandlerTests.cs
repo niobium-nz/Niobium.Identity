@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Cod.Identity;
+using FluentAssertions;
 using Moq;
 using Moq.Protected;
 

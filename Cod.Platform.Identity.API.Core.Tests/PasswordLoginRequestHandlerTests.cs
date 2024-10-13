@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Cod.Identity;
+using FluentAssertions;
 using Moq;
 
 namespace Cod.Platform.Identity.API.Core.Tests

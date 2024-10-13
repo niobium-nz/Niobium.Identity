@@ -24,15 +24,16 @@ namespace Cod.Platform.Identity.API
             LoginResult loginResult = await loginRequestHandler.HandleAsync(scheme, identity, credential, clientIP);
             if (loginResult.Challenge.HasValue)
             {
-                req.DeliverAuthenticationToken(loginResult.ChallengeSubject, loginResult.Challenge.Value.ToString());
-                return new UnauthorizedResult();
+                var forbidScheme = loginResult.Challenge.Value.ToString();
+                req.DeliverChallenge(loginResult.ChallengeSubject, forbidScheme);
+                return new StatusCodeResult((int)HttpStatusCode.Forbidden);
             }
 
             if (loginResult.User.HasValue && loginResult.App.HasValue)
             {
                 var domain = await repository.Value.GetAsync(User.BuildPartitionKey(loginResult.User.Value), User.BuildRowKey(loginResult.User.Value), cancellationToken);
                 var token = await domain.IssueTokenAsync(loginResult.App.Value);
-                req.DeliverAuthenticationToken(token, AuthenticationScheme.BearerLoginScheme);
+                req.DeliverToken(token, AuthenticationScheme.BearerLoginScheme);
                 await AuditLoginAsync(loginResult.User.Value, clientIP);
                 return new OkResult();
             }

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Cod.Identity;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Cod.Platform.Identity.API
 {
@@ -63,7 +64,7 @@ namespace Cod.Platform.Identity.API
 
         public bool IsKindOf(AuthenticationKind type)
         {
-            return IsKindOf(type);
+            return IsKindOf((int)type);
         }
 
         public bool IsKindOf(int type)

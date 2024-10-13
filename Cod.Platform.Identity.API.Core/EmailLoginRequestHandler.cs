@@ -1,4 +1,6 @@
-﻿namespace Cod.Platform.Identity.API
+﻿using Cod.Identity;
+
+namespace Cod.Platform.Identity.API
 {
     internal class EmailLoginRequestHandler(Lazy<IRepository<Login>> loginRepository, Lazy<IRepository<User>> userRepository)
         : TOTPLoginRequestHandler(loginRepository, userRepository)

@@ -2,14 +2,30 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <ImplicitUsings>enable</ImplicitUsings>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <InvariantGlobalization>true</InvariantGlobalization>
     <Nullable>enable</Nullable>
+    <LangVersion>latestMajor</LangVersion>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>Recommended</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <NoWarn>CA1848,CA2254,CA1305,CA1310,CA1711,CA1852</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
     <RootNamespace>Cod.Platform.Identity.API</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">1.0.0.0-prerelease</Version>
+    <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Cod.Platform.Identity.API.Abstractions\Cod.Platform.Identity.API.Abstractions.csproj" />
-    <PackageReference Include="Cod.Platform.Identity" Version="2.0.14-prerelease" />
+    <PackageReference Include="Cod.Platform.Identity" Version="2.1.1-prerelease" />
+    <PackageReference Include="Cod.Table.StorageAccount" Version="2.1.1-prerelease" />
   </ItemGroup>
   
   <ItemGroup>
@@ -20,4 +36,5 @@
       <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
+  
 </Project>

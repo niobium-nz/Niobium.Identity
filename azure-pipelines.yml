@@ -74,22 +74,22 @@ stages:
         appSettings: |
           [
             {
-              "name": "StorageTable:ServiceUri",
+              "name": "StorageTableOptions:ConnectionString",
               "value": "$(tableEndpoint)",
               "slotSetting": false
             },
             {
-              "name": "ID_TOKEN_PRIVATE_KEY",
+              "name": "IdentityServiceOptions:IDTokenPrivateKey",
               "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/ID-TOKEN-PRIVATE-KEY/)",
               "slotSetting": false
             },
             {
-              "name": "ID_TOKEN_PRIVATE_KEY_PASSCODE",
+              "name": "IdentityServiceOptions:IDTokenPrivateKeyPasscode",
               "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/ID-TOKEN-PRIVATE-KEY-PASSCODE/)",
               "slotSetting": false
             },
             {
-              "name": "TOKEN_VALIDITY_HOURS",
+              "name": "IdentityServiceOptions:TokenValidity",
               "value": "720",
               "slotSetting": false
             },

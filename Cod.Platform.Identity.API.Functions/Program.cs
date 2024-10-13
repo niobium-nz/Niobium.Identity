@@ -1,6 +1,6 @@
 using Cod.Platform.Identity;
 using Cod.Platform.Identity.API;
-using Cod.Storage.Table;
+using Cod.Table.StorageAccount;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,22 +13,13 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
 
-        services.AddPlatformIdentity(
-            new IdentityServiceOptions
-            {
-                IDTokenPrivateKey = context.Configuration.GetValue<string>("ID_TOKEN_PRIVATE_KEY"),
-                IDTokenPrivateKeyPasscode = context.Configuration.GetValue<string>("ID_TOKEN_PRIVATE_KEY_PASSCODE"),
-                TokenValidity = TimeSpan.FromHours(context.Configuration.GetValue<int>("TOKEN_VALIDITY_HOURS")),
-                EnableIdentityEndpoints = false,
-            },
-            new StorageTableOptions
-            {
-                ServiceEndpoint = context.Configuration.GetSection(Cod.Storage.Table.Constants.AppSettingStorageTable).GetValue<string>(Cod.Storage.Table.Constants.AppSettingStorageTableServiceUri),
-                EnableInteractiveIdentity = context.Configuration.GetValue<string>(Cod.Platform.Constants.ServiceEnvironment) == Cod.Platform.Constants.DevelopmentEnvironment,
-                AzureStorageTableDefaults = context.Configuration.GetSection("AzureDefaults"),
-            });
-
-        services.AddCodIdentityAPI();
+        var isDevelopment = context.Configuration.GetValue<string>(Cod.Platform.Constants.ServiceEnvironment) == Cod.Platform.Constants.DevelopmentEnvironment;
+        services.AddTable(new StorageTableOptions
+        {
+            EnableInteractiveIdentity = isDevelopment,
+            ConnectionString = context.Configuration.GetValue<string>($"{nameof(StorageTableOptions)}:{nameof(StorageTableOptions.ConnectionString)}"),
+        }, azureClientDefaults: context.Configuration.GetSection("AzureDefaults"))
+        .AddIdentityAPI(context.Configuration.GetRequiredSection(nameof(IdentityServiceOptions)));
     })
     .UseDefaultServiceProvider((_, options) =>
     {
