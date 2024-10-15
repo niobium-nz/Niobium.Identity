@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Cod.Identity" Version="2.1.1-prerelease" />
+    <PackageReference Include="Cod.Identity" Version="2.1.3-prerelease" />
   </ItemGroup>
 
 </Project>
