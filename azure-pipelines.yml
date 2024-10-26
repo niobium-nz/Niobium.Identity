@@ -62,7 +62,7 @@ stages:
     variables:
       functionAppName: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppName']]
       functionAppHostname: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppHostname']]
-      tableEndpoint: $[dependencies.Table.outputs['newStorageAccountProperties.tableEndpoint']]
+      tableFQDN: $[dependencies.Table.outputs['newStorageAccountProperties.tableEndpoint']]
       keyVaultUrl: $[dependencies.Infrastructure.outputs['infrastructureOutputs.keyVaultUrl']]
     steps:
     - checkout: none
@@ -75,8 +75,8 @@ stages:
         appSettings: |
           [
             {
-              "name": "StorageTableOptions:ConnectionString",
-              "value": "$(tableEndpoint)",
+              "name": "StorageTableOptions:FullyQualifiedDomainName",
+              "value": "$(tableFQDN)",
               "slotSetting": false
             },
             {
@@ -92,11 +92,6 @@ stages:
             {
               "name": "IdentityServiceOptions:TokenValidity",
               "value": "720",
-              "slotSetting": false
-            },
-            {
-              "name": "AzureDefaults:Retry:maxRetries",
-              "value": "3",
               "slotSetting": false
             }
           ]
