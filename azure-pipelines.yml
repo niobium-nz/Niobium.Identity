@@ -15,7 +15,7 @@ resources:
   - repository: devops
     type: git
     name: cod/Cod.Infrastructures
-    ref: main
+    ref: master
 
 stages:
 - stage: Production
