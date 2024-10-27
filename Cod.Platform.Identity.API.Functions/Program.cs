@@ -9,7 +9,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 IHost host = Host.CreateDefaultBuilder(args)
-    .ConfigureFunctionsWebApplication()
+    .ConfigureFunctionsWebApplication(builder =>
+    {
+        builder.UsePlatform();
+    })
     .ConfigureServices((context, services) =>
     {
         var isDevelopment = context.Configuration.IsDevelopmentEnvironment();

@@ -62,7 +62,7 @@ stages:
     variables:
       functionAppName: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppName']]
       functionAppHostname: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppHostname']]
-      tableFQDN: $[dependencies.Table.outputs['newStorageAccountProperties.tableEndpoint']]
+      tableFQDN: $[dependencies.Table.outputs['newStorageAccountProperties.tableFQDN']]
       keyVaultUrl: $[dependencies.Infrastructure.outputs['infrastructureOutputs.keyVaultUrl']]
     steps:
     - checkout: none
