@@ -4,15 +4,15 @@ using System.Diagnostics.CodeAnalysis;
 namespace Cod.Platform.Identity.API
 {
     [method: SetsRequiredMembers]
-#pragma warning disable CS8618
     internal class Login() : ITrackable
-#pragma warning restore CS8618
     {
+#pragma warning disable CS8618
         [EntityKey(EntityKeyKind.PartitionKey)]
         public required string PartitionKey { get; set; }
 
         [EntityKey(EntityKeyKind.RowKey)]
         public required string RowKey { get; set; }
+#pragma warning restore CS8618
 
         [EntityKey(EntityKeyKind.Timestamp)]
         public DateTimeOffset? Timestamp { get; set; }
