@@ -31,7 +31,7 @@ stages:
       appNamePrefix: 'codidentity'
       enableKeyVault: true
       enableStagingSlot: true
-      allowedOrigins: ['*']
+      allowedOrigins: '*'
       checkoutDevopsStep:
         checkout: devops
 
