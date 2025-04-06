@@ -3,16 +3,15 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Cod.Platform.Identity.API
 {
+#pragma warning disable CS8618
     [method: SetsRequiredMembers]
     internal class Login() : ITrackable
     {
-#pragma warning disable CS8618
         [EntityKey(EntityKeyKind.PartitionKey)]
         public required string PartitionKey { get; set; }
 
         [EntityKey(EntityKeyKind.RowKey)]
         public required string RowKey { get; set; }
-#pragma warning restore CS8618
 
         [EntityKey(EntityKeyKind.Timestamp)]
         public DateTimeOffset? Timestamp { get; set; }
@@ -72,4 +71,5 @@ namespace Cod.Platform.Identity.API
             return GetKind() == (AuthenticationKind)type;
         }
     }
+#pragma warning restore CS8618
 }

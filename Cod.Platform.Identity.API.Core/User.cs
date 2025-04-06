@@ -2,13 +2,12 @@
 
 namespace Cod.Platform.Identity.API
 {
+#pragma warning disable CS8618
     [method: SetsRequiredMembers]
     internal class User() : ITrackable
     {
-#pragma warning disable CS8618
         [EntityKey(EntityKeyKind.PartitionKey)]
         public required string Prefix { get; set; }
-#pragma warning restore CS8618
 
         [EntityKey(EntityKeyKind.RowKey)]
         public required Guid ID { get; set; }
@@ -37,4 +36,5 @@ namespace Cod.Platform.Identity.API
             return userID.ToString();
         }
     }
+#pragma warning restore CS8618
 }
