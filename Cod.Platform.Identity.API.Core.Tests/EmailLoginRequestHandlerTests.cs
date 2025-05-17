@@ -111,8 +111,8 @@ namespace Cod.Platform.Identity.API.Core.Tests
                 Credentials = $"{IdentityHelper.TOTPCredentialPrefix}{IdentityHelper.TOTPCredentialSplit}123456@{lastLoginTime:o}",
                 User = Guid.NewGuid(),
             };
-            loginRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<IEnumerable<Login>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .Callback<IEnumerable<Login>, bool, CancellationToken>((logins, _, _) => actualLoginsUpdated = logins)
+            loginRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<IEnumerable<Login>>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Callback<IEnumerable<Login>, bool, bool, CancellationToken>((logins, _, _, _) => actualLoginsUpdated = logins)
                 .ReturnsAsync(() => actualLoginsUpdated);
             loginRepositoryMock.Setup(x => x.RetrieveAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IList<string>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(existingLogin);
