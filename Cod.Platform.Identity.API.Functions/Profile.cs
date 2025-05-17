@@ -7,6 +7,8 @@ namespace Cod.Platform.Identity.API.Functions
 {
     public class Profile(PrincipalParser principalParser, IRepository<Dictionary<string, object>> repo)
     {
+        private const string AudienceClaim = "aud";
+
         [Function(nameof(GetProfile))]
         public async Task<IActionResult> GetProfile([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = Cod.Identity.Constants.DefaultProfileEndpoint)] HttpRequest req, CancellationToken cancellationToken)
         {
@@ -21,7 +23,7 @@ namespace Cod.Platform.Identity.API.Functions
                 return new ForbidResult();
             }
 
-            if (!principal.TryGetClaim<string>("aud", out var tenant) || string.IsNullOrWhiteSpace(tenant))
+            if (!principal.TryGetClaim<string>(AudienceClaim, out var tenant) || string.IsNullOrWhiteSpace(tenant))
             {
                 return new ForbidResult();
             }
@@ -33,10 +35,10 @@ namespace Cod.Platform.Identity.API.Functions
                 return new NotFoundResult();
             }
 
-            if (profile.TryGetValue("odata.etag", out var etag))
+            if (profile.TryGetValue(Cod.Database.StorageTable.Constants.AzureTableETagKey, out var etag))
             {
                 profile.Add(nameof(EntityKeyKind.ETag), etag);
-                profile.Remove("odata.etag");
+                profile.Remove(Cod.Database.StorageTable.Constants.AzureTableETagKey);
             }
 
             return new OkObjectResult(profile);
@@ -56,7 +58,7 @@ namespace Cod.Platform.Identity.API.Functions
                 return new ForbidResult();
             }
 
-            if (!principal.TryGetClaim<string>("aud", out var tenant) || string.IsNullOrWhiteSpace(tenant))
+            if (!principal.TryGetClaim<string>(AudienceClaim, out var tenant) || string.IsNullOrWhiteSpace(tenant))
             {
                 return new ForbidResult();
             }
