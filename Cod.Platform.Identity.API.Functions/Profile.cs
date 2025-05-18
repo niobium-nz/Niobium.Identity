@@ -23,7 +23,7 @@ namespace Cod.Platform.Identity.API.Functions
                 return new ForbidResult();
             }
 
-            if (!principal.TryGetClaim<string>(AudienceClaim, out var tenant) || string.IsNullOrWhiteSpace(tenant))
+            if (!principal.TryGetClaim<Guid>(AudienceClaim, out var tenant) || tenant == Guid.Empty)
             {
                 return new ForbidResult();
             }
@@ -58,7 +58,7 @@ namespace Cod.Platform.Identity.API.Functions
                 return new ForbidResult();
             }
 
-            if (!principal.TryGetClaim<string>(AudienceClaim, out var tenant) || string.IsNullOrWhiteSpace(tenant))
+            if (!principal.TryGetClaim<Guid>(AudienceClaim, out var tenant) || tenant == Guid.Empty)
             {
                 return new ForbidResult();
             }
@@ -72,7 +72,7 @@ namespace Cod.Platform.Identity.API.Functions
             profile.Remove(nameof(EntityKeyKind.PartitionKey));
             profile.Remove(nameof(EntityKeyKind.RowKey));
             profile.Remove(nameof(EntityKeyKind.Timestamp));
-            profile.Add(nameof(EntityKeyKind.PartitionKey), tenant);
+            profile.Add(nameof(EntityKeyKind.PartitionKey), tenant.ToString());
             profile.Add(nameof(EntityKeyKind.RowKey), user.ToString());
 
             var preconditionCheck = profile.ContainsKey(nameof(EntityKeyKind.ETag));
