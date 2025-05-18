@@ -45,7 +45,7 @@ namespace Cod.Platform.Identity.API.Functions
         }
 
         [Function(nameof(SetProfile))]
-        public async Task<IActionResult> SetProfile([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = Cod.Identity.Constants.DefaultProfileEndpoint)] HttpRequest req, CancellationToken cancellationToken)
+        public async Task<IActionResult> SetProfile([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = Cod.Identity.Constants.DefaultProfileEndpoint)] HttpRequest req, CancellationToken cancellationToken)
         {
             var principal = await principalParser.ParseIDPrincipalAsync(req, cancellationToken);
             if (principal == null)
