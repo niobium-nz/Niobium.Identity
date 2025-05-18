@@ -12,7 +12,7 @@ namespace Cod.Platform.Identity.API.Functions
         [Function(nameof(GetProfile))]
         public async Task<IActionResult> GetProfile([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = Cod.Identity.Constants.DefaultProfileEndpoint)] HttpRequest req, CancellationToken cancellationToken)
         {
-            var principal = await principalParser.ParseIDPrincipalAsync(req, cancellationToken);
+            var principal = await principalParser.ParseIDPrincipalAsync(req, null, cancellationToken);
             if (principal == null)
             {
                 return new UnauthorizedResult();
@@ -47,7 +47,7 @@ namespace Cod.Platform.Identity.API.Functions
         [Function(nameof(SetProfile))]
         public async Task<IActionResult> SetProfile([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = Cod.Identity.Constants.DefaultProfileEndpoint)] HttpRequest req, CancellationToken cancellationToken)
         {
-            var principal = await principalParser.ParseIDPrincipalAsync(req, cancellationToken);
+            var principal = await principalParser.ParseIDPrincipalAsync(req, null, cancellationToken);
             if (principal == null)
             {
                 return new UnauthorizedResult();
@@ -75,7 +75,20 @@ namespace Cod.Platform.Identity.API.Functions
             profile.Add(nameof(EntityKeyKind.PartitionKey), tenant.ToString());
             profile.Add(nameof(EntityKeyKind.RowKey), user.ToString());
 
-            var preconditionCheck = profile.ContainsKey(nameof(EntityKeyKind.ETag));
+            var preconditionCheck = false;
+            if (profile.TryGetValue(nameof(EntityKeyKind.ETag), out var etag))
+            {
+                var eTagStringValue = etag.ToString();
+                if (!string.IsNullOrWhiteSpace(eTagStringValue))
+                {
+                    preconditionCheck = true;
+
+                    // Workaround for ETag as it can be potentially parsed as a JsonElement
+                    profile.Remove(nameof(EntityKeyKind.ETag));
+                    profile.Add(nameof(EntityKeyKind.ETag), eTagStringValue); 
+                }
+            }
+
             await repo.UpdateAsync(profile, preconditionCheck: preconditionCheck, mergeIfExists: true, cancellationToken: cancellationToken);
 
             return new OkResult();
