@@ -31,7 +31,7 @@ namespace Cod.Platform.Identity.API
 
             if (loginResult.User.HasValue && loginResult.App.HasValue)
             {
-                var domain = await repository.Value.GetAsync(User.BuildPartitionKey(loginResult.User.Value), User.BuildRowKey(loginResult.User.Value), cancellationToken);
+                var domain = await repository.Value.GetAsync(User.BuildPartitionKey(loginResult.User.Value), User.BuildRowKey(loginResult.User.Value), cancellationToken: cancellationToken);
                 var token = await domain.IssueTokenAsync(loginResult.App.Value);
                 req.DeliverToken(token, AuthenticationScheme.BearerLoginScheme);
                 await AuditLoginAsync(loginResult.User.Value, clientIP);
