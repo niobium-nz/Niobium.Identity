@@ -1,5 +1,4 @@
-﻿using Cod.Identity;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Cod.Platform.Identity.API
@@ -8,30 +7,21 @@ namespace Cod.Platform.Identity.API
     {
         private static volatile bool loaded;
 
-        public static IServiceCollection AddIdentityAPI(this IServiceCollection services, IConfiguration configuration)
-        {
-            return services.AddIdentityAPI(configuration.Bind);
-        }
-
-        public static IServiceCollection AddIdentityAPI(this IServiceCollection services, Action<IdentityServiceOptions> identityOptions)
+        public static void AddCore(this IFunctionsWorkerApplicationBuilder builder)
         {
             if (loaded)
             {
-                return services;
+                return;
             }
 
             loaded = true;
 
-            services.AddIdentity(identityOptions);
-
-            services.AddTransient<IAuthenticator, Authenticator>();
-            services.AddTransient<ILoginRequestHandler, EmailLoginRequestHandler>();
-            services.AddTransient<ILoginRequestHandler, PasswordLoginRequestHandler>();
-            services.AddTransient<AuthenticationDomain>();
-            services.AddTransient<Func<AuthenticationDomain>>(sp => () => sp.GetRequiredService<AuthenticationDomain>());
-            services.AddTransient<IDomainRepository<AuthenticationDomain, User>, GenericDomainRepository<AuthenticationDomain, User>>();
-
-            return services;
+            builder.Services.AddTransient<IAuthenticator, Authenticator>();
+            builder.Services.AddTransient<ILoginRequestHandler, EmailLoginRequestHandler>();
+            builder.Services.AddTransient<ILoginRequestHandler, PasswordLoginRequestHandler>();
+            builder.Services.AddTransient<AuthenticationDomain>();
+            builder.Services.AddTransient<Func<AuthenticationDomain>>(sp => () => sp.GetRequiredService<AuthenticationDomain>());
+            builder.Services.AddTransient<IDomainRepository<AuthenticationDomain, User>, GenericDomainRepository<AuthenticationDomain, User>>();
         }
     }
 }
