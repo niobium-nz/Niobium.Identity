@@ -1,10 +1,8 @@
-using Cod.Platform;
-using Cod.Platform.Identity.API;
+using Cod.Platform.Identity.API.Functions;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Niobium.Store.Functions;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 

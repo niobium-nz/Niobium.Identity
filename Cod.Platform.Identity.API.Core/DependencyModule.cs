@@ -19,9 +19,7 @@ namespace Cod.Platform.Identity.API
             builder.Services.AddTransient<IAuthenticator, Authenticator>();
             builder.Services.AddTransient<ILoginRequestHandler, EmailLoginRequestHandler>();
             builder.Services.AddTransient<ILoginRequestHandler, PasswordLoginRequestHandler>();
-            builder.Services.AddTransient<AuthenticationDomain>();
-            builder.Services.AddTransient<Func<AuthenticationDomain>>(sp => () => sp.GetRequiredService<AuthenticationDomain>());
-            builder.Services.AddTransient<IDomainRepository<AuthenticationDomain, User>, GenericDomainRepository<AuthenticationDomain, User>>();
+            builder.Services.AddDomain<AuthenticationDomain, User>();
         }
     }
 }

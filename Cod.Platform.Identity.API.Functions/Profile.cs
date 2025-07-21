@@ -10,7 +10,9 @@ namespace Cod.Platform.Identity.API.Functions
         private const string AudienceClaim = "aud";
 
         [Function(nameof(GetProfile))]
-        public async Task<IActionResult> GetProfile([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = Cod.Identity.Constants.DefaultProfileEndpoint)] HttpRequest req, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetProfile(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = Cod.Identity.Constants.DefaultProfileEndpoint)] HttpRequest req,
+            CancellationToken cancellationToken)
         {
             var principal = await principalParser.ParseIDPrincipalAsync(req, null, cancellationToken);
             if (principal == null)
@@ -85,7 +87,7 @@ namespace Cod.Platform.Identity.API.Functions
 
                     // Workaround for ETag as it can be potentially parsed as a JsonElement
                     profile.Remove(nameof(EntityKeyKind.ETag));
-                    profile.Add(nameof(EntityKeyKind.ETag), eTagStringValue); 
+                    profile.Add(nameof(EntityKeyKind.ETag), eTagStringValue);
                 }
             }
 

@@ -1,13 +1,9 @@
-using Cod;
-using Cod.Platform;
-using Cod.Platform.Identity;
-using Cod.Platform.Identity.API;
 using Cod.Platform.StorageTable;
 using Cod.Table.StorageAccount;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Niobium.Store.Functions
+namespace Cod.Platform.Identity.API.Functions
 {
     public static class DependencyModule
     {
@@ -22,7 +18,6 @@ namespace Niobium.Store.Functions
 
             loaded = true;
 
-            builder.UsePlatform();
             builder.AddDatabase();
             builder.AddIdentity();
             builder.AddCore();
@@ -34,6 +29,8 @@ namespace Niobium.Store.Functions
                 repo.TableName = nameof(Profile);
                 return repo;
             });
+
+            builder.UsePlatform();
         }
     }
 }
