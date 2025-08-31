@@ -33,7 +33,7 @@ stages:
   jobs:
   - template: pipelines/jobs/GenericDotnetBuild.yml@devops
     parameters:
-      projectToPublish: '**/Cod.Platform.Identity.API.Functions.csproj'
+      projectToPublish: '**/Niobium.Platform.Identity.API.Functions.csproj'
 
   - template: pipelines/jobs/FunctionAppInfrastructure.yml@devops
     parameters:

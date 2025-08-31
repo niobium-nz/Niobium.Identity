@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "Cod.Platform.Identity.API.Functions": {
-      "commandName": "Project",
-      "commandLineArgs": "--port 7295",
-      "launchBrowser": false
-    }
-  }
-}

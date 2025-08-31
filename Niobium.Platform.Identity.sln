@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35219.272
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Niobium.Platform.Identity.API.Functions", "Niobium.Platform.Identity.API.Functions\Niobium.Platform.Identity.API.Functions.csproj", "{7AF42CF0-B1E6-459B-B83B-A0897D2C82F3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Niobium.Platform.Identity.API.Core", "Niobium.Platform.Identity.API.Core\Niobium.Platform.Identity.API.Core.csproj", "{CA9D6D03-E2BE-47BA-B786-1D3C6DDB88C8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Niobium.Platform.Identity.API.Abstractions", "Niobium.Platform.Identity.API.Abstractions\Niobium.Platform.Identity.API.Abstractions.csproj", "{D2AFFCFB-5FDA-41EB-8B6D-1B1F82BE5A88}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Niobium.Platform.Identity.API.Core.Tests", "Niobium.Platform.Identity.API.Core.Tests\Niobium.Platform.Identity.API.Core.Tests.csproj", "{65239DF3-1885-4A4C-B83B-DE91A82E7350}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5C0D84DA-4831-4948-99F8-919CE2B47FC3}"
+	ProjectSection(SolutionItems) = preProject
+		azure-pipelines.yml = azure-pipelines.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7AF42CF0-B1E6-459B-B83B-A0897D2C82F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AF42CF0-B1E6-459B-B83B-A0897D2C82F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AF42CF0-B1E6-459B-B83B-A0897D2C82F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AF42CF0-B1E6-459B-B83B-A0897D2C82F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA9D6D03-E2BE-47BA-B786-1D3C6DDB88C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA9D6D03-E2BE-47BA-B786-1D3C6DDB88C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA9D6D03-E2BE-47BA-B786-1D3C6DDB88C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA9D6D03-E2BE-47BA-B786-1D3C6DDB88C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2AFFCFB-5FDA-41EB-8B6D-1B1F82BE5A88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2AFFCFB-5FDA-41EB-8B6D-1B1F82BE5A88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2AFFCFB-5FDA-41EB-8B6D-1B1F82BE5A88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2AFFCFB-5FDA-41EB-8B6D-1B1F82BE5A88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65239DF3-1885-4A4C-B83B-DE91A82E7350}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65239DF3-1885-4A4C-B83B-DE91A82E7350}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65239DF3-1885-4A4C-B83B-DE91A82E7350}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65239DF3-1885-4A4C-B83B-DE91A82E7350}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8BDE0234-69E0-4C6C-B739-99E401B3DDDC}
+	EndGlobalSection
+EndGlobal
