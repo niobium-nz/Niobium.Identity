@@ -91,16 +91,6 @@ stages:
         appSettings: |
           [
             {
-              "name": "StorageTableOptions:FullyQualifiedDomainName",
-              "value": "$(tableFQDN)",
-              "slotSetting": false
-            },
-            {
-              "name": "IdentityServiceOptions:TokenValidity",
-              "value": "720",
-              "slotSetting": false
-            },
-            {
               "name": "IdentityServiceOptions:IDTokenPublicKey",
               "value": "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlmuIHhRUT+IvTdTajuOEdPZ75pqJrajOyDdJqf42siofTKHCPCZqtWaftL8Jae5VMHUNCflXzm9aKTLgerAxrGyCL3BkZj/dj4KjbeFoY1Akz5EJd5qjRNtzdoqUkDsuaigJTDDhyHvdVKRHzYAJSKgiw9CLRkzyKDZAp1Fxm2xICzRoF9OfH0jv5Qn11gkMHrkVkB6nv7QD3EGS2rnDwKudjnlsvgjpoNMMNvY7EHqkuxjHdGh4Hy7M3UXl50Bft9ky3gKeCgpvVYRPXHdT6k3e+81J7liEJYdVb5taPeNf3wB8WCP8Xc7FO6vod9ziDIkJv+xqUWYtlyGZBGTBrQIDAQAB-----END PUBLIC KEY-----",
               "slotSetting": true
@@ -139,6 +129,26 @@ stages:
               "name": "IdentityServiceOptions:IDTokenPrivateKeyPasscode",
               "value": "Mlgbhahahaha123$56",
               "slotSetting": true
+            },
+            {
+              "name": "IdentityAPIOptions:TenantID",
+              "value": "0bc0ab9b-a65a-4435-830b-9f66e52b5769",
+              "slotSetting": false
+            },
+            {
+              "name": "IdentityAPIOptions:ApplicationID",
+              "value": "e514f381-77cd-4ce9-ab6c-1a960fc7d9ed",
+              "slotSetting": false
+            },
+            {
+              "name": "StorageTableOptions:FullyQualifiedDomainName",
+              "value": "$(tableFQDN)",
+              "slotSetting": false
+            },
+            {
+              "name": "IdentityServiceOptions:TokenValidity",
+              "value": "720",
+              "slotSetting": false
             }
           ]
 

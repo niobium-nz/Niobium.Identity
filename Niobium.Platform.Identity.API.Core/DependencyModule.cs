@@ -16,6 +16,7 @@ namespace Niobium.Platform.Identity.API
 
             loaded = true;
 
+            builder.Services.AddTransient<ProfileServiceAuthorizor>();
             builder.Services.AddTransient<IAuthenticator, Authenticator>();
             builder.Services.AddTransient<ILoginRequestHandler, EmailLoginRequestHandler>();
             builder.Services.AddTransient<ILoginRequestHandler, PasswordLoginRequestHandler>();

@@ -1,43 +1,40 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
-using System.Security.Claims;
+using System.Net.Http.Json;
 
 namespace Niobium.Platform.Identity.API.Functions
 {
-    public class Profile(PrincipalParser principalParser, IRepository<Dictionary<string, object>> repo)
+    public class Profile(IRepository<Dictionary<string, object>> repo, ProfileServiceAuthorizor authorizor)
     {
-        private const string AudienceClaim = "aud";
-
         [Function(nameof(GetProfile))]
         public async Task<IActionResult> GetProfile(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = Constants.DefaultProfileEndpoint)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = Constants.DefaultProfileEndpoint + "/{tenant}/{user}")] HttpRequest req,
+            Guid tenant,
+            Guid user,
             CancellationToken cancellationToken)
         {
-            var principal = await principalParser.ParseIDPrincipalAsync(req, null, cancellationToken);
-            if (principal == null)
+            if (!req.TryParseAuthorizationHeader(out string inputScheme, out string token)
+                || inputScheme != AuthenticationScheme.BearerLoginScheme
+                || string.IsNullOrWhiteSpace(token))
             {
                 return new UnauthorizedResult();
             }
 
-            if (!principal.TryGetClaim<Guid>(ClaimTypes.NameIdentifier, out var user) || user == Guid.Empty)
+            bool permissionGrant = await authorizor.CheckPermissionAsync(token, tenant, user, cancellationToken);
+            if (!permissionGrant)
             {
                 return new ForbidResult();
             }
 
-            if (!principal.TryGetClaim<Guid>(AudienceClaim, out var tenant) || tenant == Guid.Empty)
-            {
-                return new ForbidResult();
-            }
-
-            var profile = await repo.RetrieveAsync(tenant.ToString(), user.ToString(), cancellationToken: cancellationToken);
+            Dictionary<string, object>? profile = await repo.RetrieveAsync(tenant.ToString(), user.ToString(), cancellationToken: cancellationToken);
 
             if (profile == null)
             {
                 return new NotFoundResult();
             }
 
-            if (profile.TryGetValue(Database.StorageTable.Constants.AzureTableETagKey, out var etag))
+            if (profile.TryGetValue(Database.StorageTable.Constants.AzureTableETagKey, out object? etag))
             {
                 profile.Add(nameof(EntityKeyKind.ETag), etag);
                 profile.Remove(Database.StorageTable.Constants.AzureTableETagKey);
@@ -47,25 +44,26 @@ namespace Niobium.Platform.Identity.API.Functions
         }
 
         [Function(nameof(SetProfile))]
-        public async Task<IActionResult> SetProfile([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = Constants.DefaultProfileEndpoint)] HttpRequest req, CancellationToken cancellationToken)
+        public async Task<IActionResult> SetProfile(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = Constants.DefaultProfileEndpoint + "/{tenant}/{user}")] HttpRequest req,
+            Guid tenant,
+            Guid user,
+            CancellationToken cancellationToken)
         {
-            var principal = await principalParser.ParseIDPrincipalAsync(req, null, cancellationToken);
-            if (principal == null)
+            if (!req.TryParseAuthorizationHeader(out string inputScheme, out string token)
+                || inputScheme != AuthenticationScheme.BearerLoginScheme
+                || string.IsNullOrWhiteSpace(token))
             {
                 return new UnauthorizedResult();
             }
 
-            if (!principal.TryGetClaim<Guid>(ClaimTypes.NameIdentifier, out var user) || user == Guid.Empty)
+            bool permissionGrant = await authorizor.CheckPermissionAsync(token, tenant, user, cancellationToken);
+            if (!permissionGrant)
             {
                 return new ForbidResult();
             }
 
-            if (!principal.TryGetClaim<Guid>(AudienceClaim, out var tenant) || tenant == Guid.Empty)
-            {
-                return new ForbidResult();
-            }
-
-            var profile = await req.ReadFromJsonAsync<Dictionary<string, object>>(cancellationToken: cancellationToken);
+            Dictionary<string, object>? profile = await req.ReadFromJsonAsync<Dictionary<string, object>>(cancellationToken: cancellationToken);
             if (profile == null || profile.Count == 0)
             {
                 return new BadRequestResult();
@@ -77,10 +75,10 @@ namespace Niobium.Platform.Identity.API.Functions
             profile.Add(nameof(EntityKeyKind.PartitionKey), tenant.ToString());
             profile.Add(nameof(EntityKeyKind.RowKey), user.ToString());
 
-            var preconditionCheck = false;
-            if (profile.TryGetValue(nameof(EntityKeyKind.ETag), out var etag))
+            bool preconditionCheck = false;
+            if (profile.TryGetValue(nameof(EntityKeyKind.ETag), out object? etag))
             {
-                var eTagStringValue = etag.ToString();
+                string? eTagStringValue = etag.ToString();
                 if (!string.IsNullOrWhiteSpace(eTagStringValue))
                 {
                     preconditionCheck = true;
