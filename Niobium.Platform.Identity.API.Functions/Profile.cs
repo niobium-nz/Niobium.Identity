@@ -24,7 +24,7 @@ namespace Niobium.Platform.Identity.API.Functions
             bool permissionGrant = await authorizor.CheckPermissionAsync(token, tenant, user, cancellationToken);
             if (!permissionGrant)
             {
-                return new ForbidResult();
+                return new ForbidResult(AuthenticationScheme.BearerLoginScheme);
             }
 
             Dictionary<string, object>? profile = await repo.RetrieveAsync(tenant.ToString(), user.ToString(), cancellationToken: cancellationToken);

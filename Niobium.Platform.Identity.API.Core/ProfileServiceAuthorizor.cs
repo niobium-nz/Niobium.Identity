@@ -15,7 +15,6 @@ namespace Niobium.Platform.Identity.API
     {
         private static readonly SemaphoreSlim signingKeysLock = new(1, 1);
         private static JsonWebKeySet? signingKeys;
-        private const string AudienceClaim = "aud";
 
         public async Task<bool> CheckPermissionAsync(string token, Guid tenant, Guid user, CancellationToken cancellationToken)
         {
@@ -33,7 +32,8 @@ namespace Niobium.Platform.Identity.API
                     return false;
                 }
 
-                return principal.TryGetClaim<Guid>(ClaimTypes.NameIdentifier, out Guid u) && u == user && principal.TryGetClaim<Guid>(AudienceClaim, out Guid t) && t == tenant;
+                return principal.TryGetClaim<Guid>(ClaimTypes.Sid, out Guid u) && u == user
+                    && principal.TryGetClaim<Guid>(ClaimTypes.GroupSid, out Guid t) && t == tenant;
             }
             catch (Exception e)
             {
@@ -44,17 +44,17 @@ namespace Niobium.Platform.Identity.API
 
         private async Task<bool> CheckServicePrincipalAsync(string token, Guid tenant, Guid user, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(options.Value.TenantID) || string.IsNullOrWhiteSpace(options.Value.ApplicationID))
+            if (!options.Value.TenantID.HasValue || !options.Value.ApplicationID.HasValue)
             {
                 return false;
             }
 
-            JsonWebKeySet keys = await GetSigningKeysAsync(tenant, cancellationToken);
+            JsonWebKeySet keys = await GetSigningKeysAsync(options.Value.TenantID.Value, cancellationToken);
             TokenValidationParameters validationParameters = new()
             {
                 IssuerSigningKeys = keys.Keys,
                 ValidateIssuer = true,
-                ValidIssuer = $"https://sts.windows.net/{options.Value.TenantID}/",
+                ValidIssuer = $"https://sts.windows.net/{options.Value.TenantID.Value}/",
                 ValidateAudience = true,
                 ValidAudience = $"api://{options.Value.ApplicationID}",
                 ValidateLifetime = true,

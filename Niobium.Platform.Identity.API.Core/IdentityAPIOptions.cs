@@ -2,8 +2,8 @@
 {
     public class IdentityAPIOptions
     {
-        public string? TenantID { get; set; }
+        public Guid? TenantID { get; set; }
 
-        public string? ApplicationID { get; set; }
+        public Guid? ApplicationID { get; set; }
     }
 }
