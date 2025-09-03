@@ -24,8 +24,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Niobium.Platform.Identity.API.Abstractions\Niobium.Platform.Identity.API.Abstractions.csproj" />
-    <PackageReference Include="Niobium.Platform.StorageTable" Version="3.2.14" />
-    <PackageReference Include="Niobium.Platform.Identity" Version="3.2.14" />
+    <PackageReference Include="Niobium.Platform.StorageTable" Version="3.2.15" />
+    <PackageReference Include="Niobium.Platform.Identity" Version="3.2.15" />
   </ItemGroup>
   
   <ItemGroup>
