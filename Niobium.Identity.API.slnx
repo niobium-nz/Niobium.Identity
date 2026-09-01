@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Infrastructures/">
+    <File Path="infra/function-app.bicep" />
+    <File Path="infra/main.bicep" />
+    <File Path="infra/main.bicepparam" />
+    <File Path="infra/RBAC.bicep" />
+  </Folder>
+  <Folder Name="/Pipelines/">
+    <File Path=".github/workflows/azure-deploy.yml" />
+  </Folder>
+  <Project Path="src/Niobium.Identity.API.Abstractions/Niobium.Identity.API.Abstractions.csproj" />
+  <Project Path="src/Niobium.Identity.API.Core.Tests/Niobium.Identity.API.Core.Tests.csproj" />
+  <Project Path="src/Niobium.Identity.API.Core/Niobium.Identity.API.Core.csproj" />
+  <Project Path="src/Niobium.Identity.API.Server/Niobium.Identity.API.Server.csproj" />
+</Solution>

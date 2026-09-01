@@ -1,0 +1,30 @@
+name: niobiumidentity
+resourceGroup: rg-niobium-identity-${AZURE_ENV_NAME}
+
+hooks:
+  preprovision:
+    shell: pwsh
+    run: ./infra/scripts/SetAppSettings.ps1
+  postprovision:
+    - shell: pwsh
+      run: ./infra/scripts/SetKeyVaultSecrets.ps1
+    - shell: pwsh
+      run: ./infra/scripts/ClearAppSettings.ps1
+
+infra:
+  provider: bicep
+  layers:
+    - name: niobiumidentity-infra
+      path: ./infra
+
+services:
+  niobiumidentity:
+    project: ./src/Niobium.Identity.API.Server
+    language: csharp
+    host: function
+    hooks:
+      prepackage:
+        run: dotnet test --solution ../../Niobium.Identity.API.slnx --configuration Release
+
+pipeline:
+  provider: github

@@ -1,0 +1,109 @@
+name: Azure Deployment
+
+on:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  buildVersion: '${{ vars.MAJOR_VERSION }}.${{ vars.MINOR_VERSION }}.${{ github.run_number }}'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    environment: 'test'
+    concurrency:
+      group: test-deploy
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Install azd
+        uses: Azure/setup-azd@v2
+        
+      - name: Azure login
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: azd login
+        run: azd auth login --federated-credential-provider github --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Publish
+        env:
+          AZURE_LOCATION: 'westus2'
+          AZURE_RESOURCE_GROUP: 'rg-niobium-identity-test'
+          AZURE_ENV_NAME: 'test'
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          CUSTOM_DOMAIN_NAME: ${{ secrets.CUSTOM_DOMAIN_NAME }}
+          IS_INTERACTIVE_DEPLOYER: false
+          APPSETTING_SERVICE_NAME: 'Niobium.Identity.Server.Test'
+          APPSETTING_SERVICE_VERSION: '${{ env.buildVersion }}-prerelease'
+          APPSETTING_CAPTCHAOPTIONS__ISDISABLED: 'true'
+          APPSETTING_IDENTITYSERVICEOPTIONS__IDTOKENPUBLICKEY: '-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiYo/U00tF6B9QPOmvuk3bFBKMo44b6lErabyGedkfpQrtIPW/9EC+I1TbPnH9c6HibGdFM8yfAbFBruwdUuBTEtNPRAamKqsYbDUdH9zxzT8BMUP0ayLwXtV7K97L7yD8Zd8qWpZshtzdMxMcBfi/EZiCcs1ng/06TSbT1Cp+OPA0+F783fomNHSxOzxgoUMeleMd4S+gCCwinUGcgWxz2CD9kodb9GyHtLksurxPTk5gSmUN0Y5vKQYVRxJceGVqewHCQtsnWkp4VMm+A7Ec/7I0ie9P68C3GPptG7AJBnshwDnN5/7Idh6Ar7F4lmS/bnAlOJS8+ASTYtpDEMLhQIDAQAB-----END PUBLIC KEY-----'
+          APPSETTING_IDENTITYSERVICEOPTIONS__IDTOKENPRIVATEKEY: '-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCAQEAiYo/U00tF6B9QPOmvuk3bFBKMo44b6lErabyGedkfpQrtIPW/9EC+I1TbPnH9c6HibGdFM8yfAbFBruwdUuBTEtNPRAamKqsYbDUdH9zxzT8BMUP0ayLwXtV7K97L7yD8Zd8qWpZshtzdMxMcBfi/EZiCcs1ng/06TSbT1Cp+OPA0+F783fomNHSxOzxgoUMeleMd4S+gCCwinUGcgWxz2CD9kodb9GyHtLksurxPTk5gSmUN0Y5vKQYVRxJceGVqewHCQtsnWkp4VMm+A7Ec/7I0ie9P68C3GPptG7AJBnshwDnN5/7Idh6Ar7F4lmS/bnAlOJS8+ASTYtpDEMLhQIDAQABAoIBAG7GEJCX1Nx1nsukMUULcl7jH48uKlgMXUr67Xxdd/vWfIjLsmqgvSLQOEPJvPnFWDZW/auX4RIxJZhxrAIcSMvYziGDCdixhVq836/gQrBLhTqWOFJoBLtVCXQyNSXST/ZRSs7r38fqAggsztds9Zy3VxiKOOnP8jGs8/VigzL3lUDOhHqB4ynLJwrF0w/ryfuuvPNh+7Un3RMQG3W5u3KjvWGwR/Ku53jPaEDH5C1oIhHunVu0J7KRNtwM+y26J6+AJP/z7Ch7cTxi/ACedkh/PANxeVj332GIBowTnwfDlNvP5OYwPnHyoWiNiU0WGyc0QX973QlEat33lBYwsNUCgYEAxsP9SAH/dqwXrTOHsWcJ5SKUvIO2nFoiRNgPinmYBZaBJd/CBP8F6+ou5AEq+AYPlU2mQMqFgDNhYwxItvibritp+TQDOjOwQ+nD+USmpatyYUBXRAUoY6NM/fdgOofRe7LG+U5XXT/nWHkCoPAGny6RPRQyghV08IR5LOdJRkcCgYEAsSUDtRmQZWnDwCnd+Agz7mQrM57HhHpCt8oi8uO3wGMId3sUXsprtCoy9l4f7BNEFh5pdsow+2L4SrQTiJEFqdUVCYAm2AVMlChDK+r8am4FE3sl0OQcjLzOHJA8k9L4GMFOtVXHS/+SC0t5pCVORVs8PYIROf9vdmDJyOEdadMCgYBY2FYoj6wO8ZGLu9LVe0czAqgVM5K2hJt4xlL8BKntJX8I3OGutgeBkiXviI4aWyswA4tivqO50D2htmXyU2HTEljGKXef1mbdlGoiy4rp1p7D1aysHNoW33GUu7RptTfv4NOLsHbgmaXhKAYCxgdPs9L7yEFjYA/rSmuXpLJeFQKBgCzoO0Zf0rFC3LMMag8E1VVr41/UsrOs4tkAz1dPzzdgY7cWZpWZLzCfOggm2GTahXot/4Jzw3MXJeaaPBF04kCpmgmsiSxeO4mbo1uw2IiKl5LWt0F7cpljC8VF83VuGCL+blueAUYM5hMi8RVht7PxaxYUsRVI4hLaeo0INJKtAoGAJrsd3HDA1y6Mwq3EVKHvTaQB8tEV58zyHXRFYGMBxdlJzE4V4J2QffHDGnZMOCzfyLp/xXaKPJAA6dQ4TMiGcRrreEvU+BuHOrr2ZOiuPLfOzBYjrRRyNn3kT6gGnKFQs2nVOjiLq559w/+vv3aw5mQwIxy4UYLtxRfHuLjJmVQ=-----END RSA PRIVATE KEY-----'
+          APPSETTING_IDENTITYSERVICEOPTIONS__IDTOKENPRIVATEKEYPASSCODE: 'Mlgbhahahaha123$56'
+          APPSETTING_IDENTITYSERVICEOPTIONS__TOKENVALIDITY: '720'
+          APPSETTING_IDENTITYAPIOPTIONS__TENANTID: '0bc0ab9b-a65a-4435-830b-9f66e52b5769'
+          APPSETTING_IDENTITYAPIOPTIONS__APPLICATIONID: 'e514f381-77cd-4ce9-ab6c-1a960fc7d9ed'
+        run: |
+          azd package --no-prompt
+          azd provision --no-state --no-prompt
+          azd deploy --no-prompt
+      
+  prod:
+    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    environment: 'prod'
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Install azd
+        uses: Azure/setup-azd@v2
+
+      - name: Azure login
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: azd login
+        run: azd auth login --federated-credential-provider github --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Publish
+        env:
+          AZURE_LOCATION: 'westus2'
+          AZURE_RESOURCE_GROUP: 'rg-niobium-identity-prod'
+          AZURE_ENV_NAME: 'prod'
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          CUSTOM_DOMAIN_NAME: ${{ secrets.CUSTOM_DOMAIN_NAME }}
+          IS_INTERACTIVE_DEPLOYER: false
+          APPSETTING_SERVICE_NAME: 'Niobium.Identity.Server.Prod'
+          APPSETTING_SERVICE_VERSION: ${{ env.buildVersion }}
+          APPSETTING_CAPTCHAOPTIONS__ISDISABLED: 'false'
+          APPSETTING_IDENTITYSERVICEOPTIONS__IDTOKENPUBLICKEY: '-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlmuIHhRUT+IvTdTajuOEdPZ75pqJrajOyDdJqf42siofTKHCPCZqtWaftL8Jae5VMHUNCflXzm9aKTLgerAxrGyCL3BkZj/dj4KjbeFoY1Akz5EJd5qjRNtzdoqUkDsuaigJTDDhyHvdVKRHzYAJSKgiw9CLRkzyKDZAp1Fxm2xICzRoF9OfH0jv5Qn11gkMHrkVkB6nv7QD3EGS2rnDwKudjnlsvgjpoNMMNvY7EHqkuxjHdGh4Hy7M3UXl50Bft9ky3gKeCgpvVYRPXHdT6k3e+81J7liEJYdVb5taPeNf3wB8WCP8Xc7FO6vod9ziDIkJv+xqUWYtlyGZBGTBrQIDAQAB-----END PUBLIC KEY-----'
+          APPSETTING_KV_IDENTITYSERVICEOPTIONS__IDTOKENPRIVATEKEY: ${{ secrets.APPSETTING_IDENTITYSERVICEOPTIONS__IDTOKENPRIVATEKEY }}
+          APPSETTING_KV_IDENTITYSERVICEOPTIONS__IDTOKENPRIVATEKEYPASSCODE: ${{ secrets.APPSETTING_IDENTITYSERVICEOPTIONS__IDTOKENPRIVATEKEYPASSCODE }}
+        run: |
+          azd package --no-prompt
+          azd provision --no-state --no-prompt
+          azd deploy --no-prompt
+      
