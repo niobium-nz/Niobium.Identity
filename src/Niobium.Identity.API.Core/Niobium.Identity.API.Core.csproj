@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="Niobium.Platform.StorageTable" Version="4.0.60" />
-    <PackageReference Include="Niobium.Platform.Identity" Version="4.0.60" />
+    <PackageReference Include="Niobium.Platform.Identity" Version="4.0.61" />
   </ItemGroup>
   
   <ItemGroup>

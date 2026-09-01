@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.3.12" />
-    <PackageReference Include="Niobium.Identity" Version="4.0.60" />
+    <PackageReference Include="Niobium.Identity" Version="4.0.61" />
   </ItemGroup>
   
 </Project>
