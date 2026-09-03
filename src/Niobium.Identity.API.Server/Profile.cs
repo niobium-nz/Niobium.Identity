@@ -7,7 +7,7 @@ using Niobium.Platform;
 
 namespace Niobium.Identity.API.Server
 {
-    public class Profile(IRepository<Dictionary<string, object>> repo, ProfileServiceAuthorizor authorizor, ILogger<Profile> logger)
+    public class Profile(IRepository<Dictionary<string, object>> repo, ProfileServiceAuthorizor authorizor)
     {
         [Function(nameof(GetProfile))]
         public async Task<IActionResult> GetProfile(

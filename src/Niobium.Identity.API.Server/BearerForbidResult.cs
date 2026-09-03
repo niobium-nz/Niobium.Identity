@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Niobium.Identity.API.Server
 {
-    internal class BearerForbidResult : IActionResult
+    internal sealed class BearerForbidResult : IActionResult
     {
         private readonly object? _value;
 
