@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: ["main"]
   workflow_dispatch:
+    inputs:
+      force_provision:
+        description: 'Provision Infrastructure'
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   id-token: write
@@ -79,10 +85,10 @@ jobs:
           APPSETTING_IDENTITYAPIOPTIONS__APPLICATIONID: 'e514f381-77cd-4ce9-ab6c-1a960fc7d9ed'
         run: |
           azd package --no-prompt
-          if [[ "${{ steps.infra-changes.outputs.changed }}" == "true" ]]; then
+          if [[ "${{ inputs.force_provision }}" == "true" || "${{ steps.infra-changes.outputs.changed }}" == "true" ]]; then
             azd provision --no-state --no-prompt
           else
-            echo "Skipping azd provision because neither infra/ nor this workflow changed."
+            echo "Skipping azd provision because it was not forced and neither infra/ nor this workflow changed."
           fi
           azd deploy --no-prompt
       
@@ -151,10 +157,10 @@ jobs:
           APPSETTING_IDENTITYAPIOPTIONS__APPLICATIONID: 'e514f381-77cd-4ce9-ab6c-1a960fc7d9ed'
         run: |
           azd package --no-prompt
-          if [[ "${{ steps.infra-changes.outputs.changed }}" == "true" ]]; then
+          if [[ "${{ inputs.force_provision }}" == "true" || "${{ steps.infra-changes.outputs.changed }}" == "true" ]]; then
             azd provision --no-state --no-prompt
           else
-            echo "Skipping azd provision because neither infra/ nor this workflow changed."
+            echo "Skipping azd provision because it was not forced and neither infra/ nor this workflow changed."
           fi
           azd deploy --no-prompt
       
