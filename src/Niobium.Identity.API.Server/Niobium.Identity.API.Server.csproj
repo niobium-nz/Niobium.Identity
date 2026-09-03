@@ -11,6 +11,7 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <UserSecretsId>c0b106b3-ee29-4531-948a-c6664687b9fc</UserSecretsId>
+    <NoWarn>CA1848,CA1873</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>

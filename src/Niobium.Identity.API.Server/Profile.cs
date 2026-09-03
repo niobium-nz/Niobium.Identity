@@ -2,11 +2,12 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
 using Niobium.Platform;
 
 namespace Niobium.Identity.API.Server
 {
-    public class Profile(IRepository<Dictionary<string, object>> repo, ProfileServiceAuthorizor authorizor)
+    public class Profile(IRepository<Dictionary<string, object>> repo, ProfileServiceAuthorizor authorizor, ILogger<Profile> logger)
     {
         [Function(nameof(GetProfile))]
         public async Task<IActionResult> GetProfile(
@@ -22,6 +23,7 @@ namespace Niobium.Identity.API.Server
                 return new UnauthorizedResult();
             }
 
+            logger.LogInformation("GetProfile request for tenant {Tenant} and user {User} with token {Token}", tenant, user, token);
             bool permissionGrant = await authorizor.CheckPermissionAsync(token, tenant, user, cancellationToken);
             if (!permissionGrant)
             {
