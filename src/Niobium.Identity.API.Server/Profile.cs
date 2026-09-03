@@ -23,7 +23,6 @@ namespace Niobium.Identity.API.Server
                 return new UnauthorizedResult();
             }
 
-            logger.LogInformation("GetProfile request for tenant {Tenant} and user {User} with token {Token}", tenant, user, token);
             bool permissionGrant = await authorizor.CheckPermissionAsync(token, tenant, user, cancellationToken);
             if (!permissionGrant)
             {
