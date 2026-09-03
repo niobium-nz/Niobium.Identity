@@ -25,6 +25,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect infra changes
+        id: infra-changes
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ -n "$BASE_SHA" && ! "$BASE_SHA" =~ ^0+$ ]]; then
+            changed_files=$(git diff --name-only "$BASE_SHA" "$GITHUB_SHA" -- infra/ .github/workflows/azure-deploy.yml)
+          else
+            changed_files=$(git diff-tree --no-commit-id --name-only -r "$GITHUB_SHA" -- infra/ .github/workflows/azure-deploy.yml)
+          fi
+
+          if [[ -n "$changed_files" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
         
       - name: Install azd
         uses: Azure/setup-azd@v2
@@ -59,7 +79,11 @@ jobs:
           APPSETTING_IDENTITYAPIOPTIONS__APPLICATIONID: 'e514f381-77cd-4ce9-ab6c-1a960fc7d9ed'
         run: |
           azd package --no-prompt
-          azd provision --no-state --no-prompt
+          if [[ "${{ steps.infra-changes.outputs.changed }}" == "true" ]]; then
+            azd provision --no-state --no-prompt
+          else
+            echo "Skipping azd provision because neither infra/ nor this workflow changed."
+          fi
           azd deploy --no-prompt
       
   prod:
@@ -73,6 +97,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect infra changes
+        id: infra-changes
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ -n "$BASE_SHA" && ! "$BASE_SHA" =~ ^0+$ ]]; then
+            changed_files=$(git diff --name-only "$BASE_SHA" "$GITHUB_SHA" -- infra/ .github/workflows/azure-deploy.yml)
+          else
+            changed_files=$(git diff-tree --no-commit-id --name-only -r "$GITHUB_SHA" -- infra/ .github/workflows/azure-deploy.yml)
+          fi
+
+          if [[ -n "$changed_files" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
         
       - name: Install azd
         uses: Azure/setup-azd@v2
@@ -105,6 +149,10 @@ jobs:
           APPSETTING_KV_IDENTITYSERVICEOPTIONS__IDTOKENPRIVATEKEYPASSCODE: ${{ secrets.APPSETTING_IDENTITYSERVICEOPTIONS__IDTOKENPRIVATEKEYPASSCODE }}
         run: |
           azd package --no-prompt
-          azd provision --no-state --no-prompt
+          if [[ "${{ steps.infra-changes.outputs.changed }}" == "true" ]]; then
+            azd provision --no-state --no-prompt
+          else
+            echo "Skipping azd provision because neither infra/ nor this workflow changed."
+          fi
           azd deploy --no-prompt
       
