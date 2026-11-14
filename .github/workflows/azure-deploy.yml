@@ -93,7 +93,7 @@ jobs:
           azd deploy --no-prompt
       
   prod:
-    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: 'prod'
     concurrency:
@@ -163,4 +163,3 @@ jobs:
             echo "Skipping azd provision because it was not forced and neither infra/ nor this workflow changed."
           fi
           azd deploy --no-prompt
-      
