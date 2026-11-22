@@ -16,7 +16,8 @@ Do not push main, fabricate status, self-approve, or mutate production data.
 
 Use `rg-niobium-<service-slug>-<env>` for resource groups and
 `<prefix>-<abbr>-<env>` for named service resources such as Functions and
-vaults. Functions host/package storage uses `<prefix>sts<env>` and application
-data storage uses `<prefix>std<env>`.
+vaults. Functions deployment packages use `<prefix>sts<env>` and application
+data uses `<prefix>std<env>`. The `AzureWebJobsStorage` Blob and Table endpoints
+in `infra/main.bicep` use the `std` account.
 Identity uses the service slug `identity` and compact prefix `niobiumidentity`.
-[Azure naming guide](https://github.com/niobium-nz/Niobium.DevOps/blob/453d80db4c965223623e1dbacd9775b929e09a07/docs/azure-resource-naming.md) · [Current DevOps documentation](https://github.com/niobium-nz/Niobium.DevOps/tree/main/docs)
+[Azure naming guide](https://github.com/niobium-nz/Niobium.DevOps/blob/f437f5a77dbec45296c0586b5bbe828d36eeb38b/docs/azure-resource-naming.md) · [Current DevOps documentation](https://github.com/niobium-nz/Niobium.DevOps/tree/main/docs)
